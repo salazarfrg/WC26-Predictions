@@ -9,7 +9,7 @@
 :root {
   --bg: #0a0e1a; --card: #111827; --accent: #00d4ff; --accent2: #ff6b35;
   --text: #e2e8f0; --muted: #64748b; --success: #10b981; --danger: #ef4444;
-  --gold: #fbbf24; --silver: #94a3b8; --bronze: #b45309;
+  --gold: #fbbf24; --silver: #94a3b8; --bronze: #b45309; --warning: #f59e0b;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
@@ -18,7 +18,6 @@ body {
 }
 .container { max-width: 480px; margin: 0 auto; padding: 12px; }
 
-/* Header */
 .header {
   text-align: center; padding: 16px 8px; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
   border-radius: 16px; margin-bottom: 12px; position: relative; overflow: hidden;
@@ -37,7 +36,21 @@ body {
   border: 1px solid rgba(0,212,255,0.3); position: relative; z-index: 1;
 }
 
-/* Tabs */
+.update-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, var(--accent), #0099cc);
+  color: var(--bg); font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  margin-bottom: 12px; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.update-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,212,255,0.3); }
+.update-btn:active { transform: scale(0.98); }
+.update-btn.spinning .spinner-inline { animation: spin 0.8s linear infinite; }
+.spinner-inline {
+  width: 16px; height: 16px; border: 2px solid var(--bg); border-top-color: transparent;
+  border-radius: 50%; display: inline-block;
+}
+
 .tabs {
   display: flex; gap: 6px; margin-bottom: 12px; padding: 4px;
   background: var(--card); border-radius: 12px; overflow-x: auto; scrollbar-width: none;
@@ -50,7 +63,6 @@ body {
 }
 .tab.active { background: var(--accent); color: var(--bg); }
 
-/* Cards */
 .card {
   background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 10px;
   border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s;
@@ -62,7 +74,6 @@ body {
 }
 .card-title .icon { font-size: 1rem; }
 
-/* Match Card */
 .match-card {
   display: flex; align-items: center; justify-content: space-between; padding: 12px 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -89,7 +100,6 @@ body {
 .pred-away { background: var(--accent2); }
 .pred-label { font-size: 0.6rem; color: var(--muted); min-width: 28px; text-align: center; }
 
-/* PBE Score Display */
 .pbe-display {
   display: flex; align-items: center; gap: 10px; margin-top: 8px;
 }
@@ -109,7 +119,38 @@ body {
   background: var(--success); color: var(--bg); display: inline-block; margin-top: 6px;
 }
 
-/* Standings Table */
+.pred-actual-box {
+  background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; margin-top: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.pred-actual-title {
+  font-size: 0.65rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pred-actual-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.pred-actual-row:last-child { margin-bottom: 0; }
+.pred-actual-label { font-size: 0.7rem; color: var(--muted); min-width: 80px; }
+.pred-actual-scores {
+  display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center;
+}
+.pred-score-display {
+  text-align: center; padding: 4px 10px; border-radius: 6px; background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.2); min-width: 60px;
+}
+.pred-score-display.actual {
+  background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2);
+}
+.pred-score-display .val { font-size: 0.9rem; font-weight: 800; color: var(--accent); }
+.pred-score-display.actual .val { color: var(--success); }
+.pred-score-display .lbl { font-size: 0.55rem; color: var(--muted); }
+.pred-score-display .diff {
+  font-size: 0.6rem; margin-top: 2px; font-weight: 700;
+}
+.diff-good { color: var(--success); }
+.diff-bad { color: var(--danger); }
+.diff-ok { color: var(--warning); }
+
 .standings-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
 .standings-table th {
   text-align: center; padding: 8px 4px; color: var(--muted); font-weight: 600;
@@ -126,7 +167,6 @@ body {
 .standings-table .ga { color: var(--danger); }
 .standings-table .gd { font-weight: 600; }
 
-/* PBE Ranking List */
 .rank-list { list-style: none; }
 .rank-item {
   display: flex; align-items: center; gap: 10px; padding: 10px 0;
@@ -148,7 +188,6 @@ body {
 .rank-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.5s ease; }
 .rank-score { font-size: 0.8rem; font-weight: 700; color: var(--accent); min-width: 40px; text-align: right; flex-shrink: 0; }
 
-/* Formula Explanation */
 .formula-box {
   background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15);
   border-radius: 10px; padding: 12px; font-size: 0.75rem; line-height: 1.6;
@@ -162,17 +201,14 @@ body {
   margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;
 }
 
-/* Section hidden */
 .section { display: none; }
 .section.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
 
-/* Loading */
 .loading {
   display: flex; align-items: center; justify-content: center; gap: 8px; padding: 20px;
   font-size: 0.8rem; color: var(--muted);
@@ -183,7 +219,6 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Date picker */
 .date-picker {
   display: flex; gap: 8px; align-items: center; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding: 4px 0;
 }
@@ -198,7 +233,6 @@ body {
 @keyframes pulse-border { 0%,100% { border-left-color: var(--accent); } 50% { border-left-color: var(--success); } }
 .date-chip.future { border-left: 3px solid var(--muted); opacity: 0.6; }
 
-/* Group selector */
 .group-selector {
   display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; padding: 4px 0;
 }
@@ -209,25 +243,35 @@ body {
 }
 .group-chip.active { background: var(--accent); color: var(--bg); }
 
-/* Responsive */
 @media (max-width: 360px) {
   .header h1 { font-size: 1.1rem; }
   .team-name { font-size: 0.75rem; }
   .match-score { font-size: 0.95rem; }
 }
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--card); color: var(--text); padding: 12px 20px; border-radius: 10px;
+  border: 1px solid rgba(0,212,255,0.3); font-size: 0.8rem; z-index: 1000;
+  transition: transform 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Header -->
   <div class="header">
     <h1>⚽ PBE WC 2026</h1>
     <div class="subtitle">Predictive Bayesian Ensemble</div>
     <div class="date-badge" id="currentDate">Loading...</div>
   </div>
 
-  <!-- Tabs -->
+  <button class="update-btn" id="updateBtn" onclick="updateResults()">
+    <span class="spinner-inline" style="display:none;"></span>
+    <span class="btn-text">🔄 Update Official Results</span>
+  </button>
+
   <div class="tabs">
     <button class="tab active" onclick="showTab('today')">📅 Today</button>
     <button class="tab" onclick="showTab('standings')">📊 Groups</button>
@@ -235,22 +279,18 @@ body {
     <button class="tab" onclick="showTab('formula')">📐 Formula</button>
   </div>
 
-  <!-- Date Picker -->
   <div class="date-picker" id="datePicker"></div>
 
-  <!-- TODAY'S MATCHES -->
   <div id="today" class="section active">
-    <div class="card-title"><span class="icon">⚡</span> Today's Matches & PBE Predictions</div>
+    <div class="card-title"><span class="icon">⚡</span> Matches &amp; PBE Predictions</div>
     <div id="todayMatches"></div>
   </div>
 
-  <!-- STANDINGS -->
   <div id="standings" class="section">
     <div class="group-selector" id="groupSelector"></div>
     <div id="standingsContent"></div>
   </div>
 
-  <!-- PBE RANKING -->
   <div id="pbe-rank" class="section">
     <div class="card-title"><span class="icon">🏆</span> PBE Team Rankings</div>
     <div class="card">
@@ -261,16 +301,15 @@ body {
     </div>
   </div>
 
-  <!-- FORMULA -->
   <div id="formula" class="section">
     <div class="card-title"><span class="icon">📐</span> PBE Algorithm Explained</div>
     <div class="formula-box">
       <p><strong>Predictive Bayesian Ensemble (PBE)</strong></p>
       <p>Combines historical prior with match evidence using Bayesian updating.</p>
       <div class="formula">
-        PBE = 0.35 × Prior + 0.65 × Likelihood + StageBonus
+        PBE = 0.35 x Prior + 0.65 x Likelihood + StageBonus
       </div>
-      <p><strong>Prior</strong> = Confederation Strength × Historical Prestige × Coach Experience</p>
+      <p><strong>Prior</strong> = Confederation Strength x Historical Prestige x Coach Experience</p>
       <p><strong>Likelihood</strong> = Match Evidence (Goals, Defense, Possession, Efficiency)</p>
       <p><strong>Stage Bonus</strong> = +0.15 Winner, +0.12 Finalist, +0.10 Semifinal, +0.05 Quarterfinal</p>
       <p style="margin-top:8px;font-size:0.7rem;color:var(--muted);">
@@ -281,12 +320,137 @@ body {
 
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
 // ============================================================
-// WC 2026 DATA
+// WC 2026 DATA - CORRECTED TO OFFICIAL FIFA CALENDAR
 // ============================================================
-const TEAMS = {"Argentina": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 1, "coach_trophies": 2}, "France": {"conf": "SA", "conf_str": 0.8, "hist": 0.9, "coach_wc": 3, "coach_trophies": 3}, "Brazil": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 0, "coach_trophies": 5}, "Germany": {"conf": "EU", "conf_str": 0.75, "hist": 0.85, "coach_wc": 0, "coach_trophies": 1}, "England": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 0, "coach_trophies": 2}, "Spain": {"conf": "EU", "conf_str": 0.75, "hist": 0.8, "coach_wc": 1, "coach_trophies": 1}, "Portugal": {"conf": "EU", "conf_str": 0.75, "hist": 0.7, "coach_wc": 1, "coach_trophies": 1}, "Netherlands": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 1, "coach_trophies": 1}, "Croatia": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 2, "coach_trophies": 0}, "Uruguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.7, "coach_wc": 2, "coach_trophies": 1}, "Belgium": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 0, "coach_trophies": 0}, "Switzerland": {"conf": "EU", "conf_str": 0.75, "hist": 0.55, "coach_wc": 1, "coach_trophies": 0}, "Mexico": {"conf": "NA", "conf_str": 0.5, "hist": 0.6, "coach_wc": 2, "coach_trophies": 1}, "Canada": {"conf": "NA", "conf_str": 0.5, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0}, "Japan": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 2, "coach_trophies": 0}, "South Korea": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 1, "coach_trophies": 0}, "Australia": {"conf": "AS", "conf_str": 0.45, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Iran": {"conf": "AS", "conf_str": 0.45, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0}, "Saudi Arabia": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0}, "Qatar": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 1, "coach_trophies": 0}, "Iraq": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 1, "coach_trophies": 0}, "Uzbekistan": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0}, "Jordan": {"conf": "AS", "conf_str": 0.45, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0}, "Morocco": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 1, "coach_trophies": 0}, "Senegal": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1}, "Tunisia": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0}, "Ghana": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Egypt": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0}, "Algeria": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 1}, "Ivory Coast": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1}, "South Africa": {"conf": "AF", "conf_str": 0.55, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0}, "Cape Verde": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0}, "Congo DR": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0}, "Ecuador": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0}, "Paraguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0}, "Colombia": {"conf": "SA", "conf_str": 0.8, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0}, "T\u00fcrkiye": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Czechia": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Scotland": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Austria": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0}, "Panama": {"conf": "NA", "conf_str": 0.5, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0}, "Haiti": {"conf": "NA", "conf_str": 0.5, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0}, "Cura\u00e7ao": {"conf": "NA", "conf_str": 0.5, "hist": 0.2, "coach_wc": 0, "coach_trophies": 0}, "New Zealand": {"conf": "OC", "conf_str": 0.3, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0}, "Bosnia-Herzegovina": {"conf": "EU", "conf_str": 0.75, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0}, "Norway": {"conf": "EU", "conf_str": 0.75, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0}, "Sweden": {"conf": "EU", "conf_str": 0.75, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0}};
-const SCHEDULE = [{"date": "2026-06-11", "group": "A", "home": "Mexico", "away": "South Africa", "home_score": 2, "away_score": 1, "played": true}, {"date": "2026-06-11", "group": "A", "home": "Czechia", "away": "South Korea", "home_score": 1, "away_score": 1, "played": true}, {"date": "2026-06-12", "group": "B", "home": "Canada", "away": "Bosnia-Herzegovina", "home_score": 1, "away_score": 1, "played": true}, {"date": "2026-06-12", "group": "B", "home": "Qatar", "away": "Switzerland", "home_score": 0, "away_score": 2, "played": true}, {"date": "2026-06-12", "group": "C", "home": "Brazil", "away": "Haiti", "home_score": 3, "away_score": 0, "played": true}, {"date": "2026-06-12", "group": "C", "home": "Morocco", "away": "Scotland", "home_score": 2, "away_score": 0, "played": true}, {"date": "2026-06-13", "group": "D", "home": "United States", "away": "Paraguay", "home_score": 4, "away_score": 1, "played": true}, {"date": "2026-06-13", "group": "D", "home": "Australia", "away": "T\u00fcrkiye", "home_score": 1, "away_score": 2, "played": true}, {"date": "2026-06-14", "group": "E", "home": "Germany", "away": "Cura\u00e7ao", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-14", "group": "E", "home": "Ecuador", "away": "Ivory Coast", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-14", "group": "F", "home": "Netherlands", "away": "Japan", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-14", "group": "F", "home": "Sweden", "away": "Tunisia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-15", "group": "G", "home": "Belgium", "away": "Egypt", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-15", "group": "G", "home": "Iran", "away": "New Zealand", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-15", "group": "H", "home": "Spain", "away": "Cape Verde", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-15", "group": "H", "home": "Saudi Arabia", "away": "Uruguay", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-17", "group": "I", "home": "France", "away": "Iraq", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-17", "group": "I", "home": "Senegal", "away": "Norway", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-17", "group": "J", "home": "Argentina", "away": "Algeria", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-17", "group": "J", "home": "Austria", "away": "Jordan", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-18", "group": "K", "home": "Portugal", "away": "Congo DR", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-18", "group": "K", "home": "Uzbekistan", "away": "Colombia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-18", "group": "L", "home": "England", "away": "Croatia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-18", "group": "L", "home": "Ghana", "away": "Panama", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-20", "group": "A", "home": "South Africa", "away": "Czechia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-20", "group": "A", "home": "South Korea", "away": "Mexico", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-20", "group": "B", "home": "Bosnia-Herzegovina", "away": "Qatar", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-20", "group": "B", "home": "Switzerland", "away": "Canada", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-21", "group": "C", "home": "Haiti", "away": "Morocco", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-21", "group": "C", "home": "Scotland", "away": "Brazil", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-21", "group": "D", "home": "Paraguay", "away": "Australia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-21", "group": "D", "home": "T\u00fcrkiye", "away": "United States", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-22", "group": "E", "home": "Cura\u00e7ao", "away": "Ecuador", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-22", "group": "E", "home": "Ivory Coast", "away": "Germany", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-22", "group": "F", "home": "Japan", "away": "Sweden", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-22", "group": "F", "home": "Tunisia", "away": "Netherlands", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-23", "group": "G", "home": "Egypt", "away": "Iran", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-23", "group": "G", "home": "New Zealand", "away": "Belgium", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-23", "group": "H", "home": "Cape Verde", "away": "Saudi Arabia", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-23", "group": "H", "home": "Uruguay", "away": "Spain", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-24", "group": "I", "home": "Iraq", "away": "Senegal", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-24", "group": "I", "home": "Norway", "away": "France", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-24", "group": "J", "home": "Algeria", "away": "Austria", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-24", "group": "J", "home": "Jordan", "away": "Argentina", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-25", "group": "K", "home": "Congo DR", "away": "Uzbekistan", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-25", "group": "K", "home": "Colombia", "away": "Portugal", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-25", "group": "L", "home": "Croatia", "away": "Ghana", "home_score": null, "away_score": null, "played": false}, {"date": "2026-06-25", "group": "L", "home": "Panama", "away": "England", "home_score": null, "away_score": null, "played": false}];
+const TEAMS = {
+  "Argentina": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 1, "coach_trophies": 2},
+  "France": {"conf": "SA", "conf_str": 0.8, "hist": 0.9, "coach_wc": 3, "coach_trophies": 3},
+  "Brazil": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 0, "coach_trophies": 5},
+  "Germany": {"conf": "EU", "conf_str": 0.75, "hist": 0.85, "coach_wc": 0, "coach_trophies": 1},
+  "England": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 0, "coach_trophies": 2},
+  "Spain": {"conf": "EU", "conf_str": 0.75, "hist": 0.8, "coach_wc": 1, "coach_trophies": 1},
+  "Portugal": {"conf": "EU", "conf_str": 0.75, "hist": 0.7, "coach_wc": 1, "coach_trophies": 1},
+  "Netherlands": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 1, "coach_trophies": 1},
+  "Croatia": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 2, "coach_trophies": 0},
+  "Uruguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.7, "coach_wc": 2, "coach_trophies": 1},
+  "Belgium": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 0, "coach_trophies": 0},
+  "Switzerland": {"conf": "EU", "conf_str": 0.75, "hist": 0.55, "coach_wc": 1, "coach_trophies": 0},
+  "Mexico": {"conf": "NA", "conf_str": 0.5, "hist": 0.6, "coach_wc": 2, "coach_trophies": 1},
+  "Canada": {"conf": "NA", "conf_str": 0.5, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Japan": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 2, "coach_trophies": 0},
+  "South Korea": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 1, "coach_trophies": 0},
+  "Australia": {"conf": "AS", "conf_str": 0.45, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Iran": {"conf": "AS", "conf_str": 0.45, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Saudi Arabia": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Qatar": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 1, "coach_trophies": 0},
+  "Iraq": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 1, "coach_trophies": 0},
+  "Uzbekistan": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Jordan": {"conf": "AS", "conf_str": 0.45, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Morocco": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 1, "coach_trophies": 0},
+  "Senegal": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1},
+  "Tunisia": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0},
+  "Ghana": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Egypt": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Algeria": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 1},
+  "Ivory Coast": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1},
+  "South Africa": {"conf": "AF", "conf_str": 0.55, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Cape Verde": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "DR Congo": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Ecuador": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0},
+  "Paraguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Colombia": {"conf": "SA", "conf_str": 0.8, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0},
+  "Turkiye": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Czechia": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Scotland": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Austria": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Panama": {"conf": "NA", "conf_str": 0.5, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Haiti": {"conf": "NA", "conf_str": 0.5, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Curacao": {"conf": "NA", "conf_str": 0.5, "hist": 0.2, "coach_wc": 0, "coach_trophies": 0},
+  "New Zealand": {"conf": "OC", "conf_str": 0.3, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Bosnia-Herzegovina": {"conf": "EU", "conf_str": 0.75, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Norway": {"conf": "EU", "conf_str": 0.75, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Sweden": {"conf": "EU", "conf_str": 0.75, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0},
+  "United States": {"conf": "NA", "conf_str": 0.5, "hist": 0.45, "coach_wc": 1, "coach_trophies": 0}
+};
+
+const SCHEDULE = [
+  {"date": "2026-06-11", "group": "A", "home": "Mexico", "away": "South Africa", "home_score": 2, "away_score": 0, "played": true, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-11", "group": "A", "home": "South Korea", "away": "Czechia", "home_score": 2, "away_score": 1, "played": true, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-12", "group": "B", "home": "Canada", "away": "Bosnia-Herzegovina", "home_score": 1, "away_score": 1, "played": true, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-12", "group": "D", "home": "United States", "away": "Paraguay", "home_score": 4, "away_score": 1, "played": true, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-13", "group": "B", "home": "Qatar", "away": "Switzerland", "home_score": 1, "away_score": 1, "played": true, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-13", "group": "C", "home": "Brazil", "away": "Morocco", "home_score": 1, "away_score": 1, "played": true, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-13", "group": "C", "home": "Haiti", "away": "Scotland", "home_score": 0, "away_score": 1, "played": true, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-13", "group": "D", "home": "Australia", "away": "Turkiye", "home_score": 2, "away_score": 0, "played": true, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-14", "group": "E", "home": "Germany", "away": "Curacao", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-14", "group": "F", "home": "Netherlands", "away": "Japan", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-14", "group": "E", "home": "Ivory Coast", "away": "Ecuador", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-14", "group": "F", "home": "Sweden", "away": "Tunisia", "home_score": null, "away_score": null, "played": false, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-15", "group": "H", "home": "Spain", "away": "Cape Verde", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-15", "group": "G", "home": "Belgium", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-15", "group": "H", "home": "Saudi Arabia", "away": "Uruguay", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-15", "group": "G", "home": "Iran", "away": "New Zealand", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-16", "group": "I", "home": "France", "away": "Senegal", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-16", "group": "I", "home": "Iraq", "away": "Norway", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-16", "group": "J", "home": "Argentina", "away": "Algeria", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-16", "group": "J", "home": "Austria", "away": "Jordan", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-17", "group": "K", "home": "Portugal", "away": "DR Congo", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-17", "group": "L", "home": "England", "away": "Croatia", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-17", "group": "L", "home": "Ghana", "away": "Panama", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-17", "group": "K", "home": "Uzbekistan", "away": "Colombia", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-18", "group": "A", "home": "Czechia", "away": "South Africa", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-18", "group": "B", "home": "Switzerland", "away": "Bosnia-Herzegovina", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-18", "group": "B", "home": "Canada", "away": "Qatar", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-18", "group": "A", "home": "Mexico", "away": "South Korea", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-19", "group": "D", "home": "United States", "away": "Australia", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-19", "group": "C", "home": "Scotland", "away": "Morocco", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-19", "group": "C", "home": "Brazil", "away": "Haiti", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-19", "group": "D", "home": "Turkiye", "away": "Paraguay", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-20", "group": "F", "home": "Netherlands", "away": "Sweden", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-20", "group": "E", "home": "Germany", "away": "Ivory Coast", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-20", "group": "E", "home": "Ecuador", "away": "Curacao", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-20", "group": "F", "home": "Tunisia", "away": "Japan", "home_score": null, "away_score": null, "played": false, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-21", "group": "H", "home": "Spain", "away": "Saudi Arabia", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-21", "group": "G", "home": "Belgium", "away": "Iran", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-21", "group": "H", "home": "Uruguay", "away": "Cape Verde", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-21", "group": "G", "home": "New Zealand", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-22", "group": "J", "home": "Argentina", "away": "Austria", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-22", "group": "I", "home": "France", "away": "Iraq", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-22", "group": "I", "home": "Norway", "away": "Senegal", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-22", "group": "J", "home": "Jordan", "away": "Algeria", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-23", "group": "K", "home": "Portugal", "away": "Uzbekistan", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-23", "group": "L", "home": "England", "away": "Ghana", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-23", "group": "L", "home": "Panama", "away": "Croatia", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-23", "group": "K", "home": "Colombia", "away": "DR Congo", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-24", "group": "C", "home": "Scotland", "away": "Brazil", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-24", "group": "C", "home": "Morocco", "away": "Haiti", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-24", "group": "B", "home": "Switzerland", "away": "Canada", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-24", "group": "B", "home": "Bosnia-Herzegovina", "away": "Qatar", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-24", "group": "A", "home": "Czechia", "away": "Mexico", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-24", "group": "A", "home": "South Africa", "away": "South Korea", "home_score": null, "away_score": null, "played": false, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-25", "group": "E", "home": "Curacao", "away": "Ivory Coast", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-25", "group": "E", "home": "Ecuador", "away": "Germany", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-25", "group": "F", "home": "Japan", "away": "Sweden", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-25", "group": "F", "home": "Tunisia", "away": "Netherlands", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-25", "group": "D", "home": "Turkiye", "away": "United States", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-25", "group": "D", "home": "Paraguay", "away": "Australia", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-26", "group": "G", "home": "Belgium", "away": "New Zealand", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-26", "group": "G", "home": "Iran", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-26", "group": "H", "home": "Spain", "away": "Uruguay", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-26", "group": "H", "home": "Cape Verde", "away": "Saudi Arabia", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-26", "group": "I", "home": "France", "away": "Norway", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-26", "group": "I", "home": "Senegal", "away": "Iraq", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-27", "group": "L", "home": "Panama", "away": "England", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-27", "group": "L", "home": "Croatia", "away": "Ghana", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-27", "group": "K", "home": "Colombia", "away": "Portugal", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-27", "group": "K", "home": "DR Congo", "away": "Uzbekistan", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-27", "group": "J", "home": "Algeria", "away": "Austria", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-27", "group": "J", "home": "Jordan", "away": "Argentina", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"}
+];
 
 // ============================================================
 // PBE ENGINE
@@ -300,7 +464,6 @@ class PBEEngine {
   initTeams() {
     for (let team in TEAMS) {
       const t = TEAMS[team];
-      // Prior calculation
       const coachBonus = Math.min(t.coach_wc * 0.05 + t.coach_trophies * 0.03, 0.15);
       const priorRaw = t.conf_str * t.hist + coachBonus;
 
@@ -317,7 +480,6 @@ class PBEEngine {
     }
   }
 
-  // Simulate match result and update stats
   processMatch(match) {
     if (!match.played || match.home_score === null) return;
 
@@ -338,14 +500,12 @@ class PBEEngine {
       home.draws++; away.draws++; home.pts++; away.pts++;
     }
 
-    // Simulate possession based on result and historical strength
     const homeStrength = home.prior;
     const awayStrength = away.prior;
     const totalStrength = homeStrength + awayStrength;
     home.possession = Math.round(35 + (homeStrength / totalStrength) * 50 + (Math.random() - 0.5) * 10);
     away.possession = 100 - home.possession;
 
-    // Simulate other metrics
     home.shots = Math.round(8 + (home.possession / 100) * 12 + Math.random() * 4);
     away.shots = Math.round(8 + (away.possession / 100) * 12 + Math.random() * 4);
     home.passAcc = Math.round(78 + (home.possession / 100) * 15 + Math.random() * 5);
@@ -360,25 +520,18 @@ class PBEEngine {
   updatePBE(team) {
     if (team.matches === 0) return;
 
-    // Likelihood components (normalized)
     const gf_p90 = team.gf / team.matches;
     const ga_p90 = team.ga / team.matches;
     const goals_per_shot = team.gf / Math.max(team.shots * team.matches, 1);
 
-    // Normalize to 0-1 (using approximate WC ranges)
-    const eGoals = Math.min(gf_p90 / 2.5, 1);  // Max ~2.5 goals per match
+    const eGoals = Math.min(gf_p90 / 2.5, 1);
     const eDefense = Math.max(1 - ga_p90 / 2.5, 0);
     const ePossession = team.possession / 100;
-    const eEfficiency = Math.min(goals_per_shot * 10, 1);  // Normalize
+    const eEfficiency = Math.min(goals_per_shot * 10, 1);
 
-    // Likelihood = weighted combination
     team.likelihood = 0.30 * eGoals + 0.25 * eDefense + 0.20 * ePossession + 0.25 * eEfficiency;
 
-    // Stage bonus based on points progression
     const stageBonus = this.getStageBonus(team);
-
-    // PBE = Prior * priorWeight + Likelihood * evidenceWeight + StageBonus
-    // As tournament progresses, evidence weight increases
     const evidenceWeight = Math.min(0.35 + team.matches * 0.10, 0.65);
     const priorWeight = 1 - evidenceWeight;
 
@@ -387,10 +540,9 @@ class PBEEngine {
   }
 
   getStageBonus(team) {
-    // Points-based stage bonus (group stage proxy)
-    if (team.pts >= 7) return 0.08;  // Likely group winner
-    if (team.pts >= 4) return 0.04;  // Likely advancing
-    if (team.pts >= 1) return 0.01;  // Still possible
+    if (team.pts >= 7) return 0.08;
+    if (team.pts >= 4) return 0.04;
+    if (team.pts >= 1) return 0.01;
     return 0;
   }
 
@@ -403,13 +555,15 @@ class PBEEngine {
     const awayPBE = away.pbe;
     const total = homePBE + awayPBE;
 
-    // Win probability based on PBE ratio
     const homeWin = homePBE / total;
     const awayWin = awayPBE / total;
-    const draw = Math.max(0.15, 1 - homeWin - awayWin);  // Minimum 15% draw
+    const draw = Math.max(0.15, 1 - homeWin - awayWin);
 
-    // Normalize
     const sum = homeWin + awayWin + draw;
+
+    const totalGoals = 2.5;
+    const homeGoals = Math.round((homePBE / total) * totalGoals);
+    const awayGoals = Math.round((awayPBE / total) * totalGoals);
 
     return {
       home: homeName, away: awayName,
@@ -418,7 +572,9 @@ class PBEEngine {
       draw: (draw / sum * 100).toFixed(1),
       awayWin: (awayWin / sum * 100).toFixed(1),
       favorite: homePBE > awayPBE ? homeName : awayName,
-      margin: Math.abs(homePBE - awayPBE).toFixed(3)
+      margin: Math.abs(homePBE - awayPBE).toFixed(3),
+      predHomeGoals: homeGoals,
+      predAwayGoals: awayGoals
     };
   }
 
@@ -444,17 +600,12 @@ class PBEEngine {
 // ============================================================
 // UI CONTROLLER
 // ============================================================
-const engine = new PBEEngine();
-let currentDate = new Date().toISOString().split('T')[0];
+let engine = new PBEEngine();
+let currentDate = '2026-06-14';
 
 function init() {
-  // Process all played matches
   SCHEDULE.forEach(m => engine.processMatch(m));
-
-  // Set current date (for demo, use June 14, 2026)
-  currentDate = '2026-06-14';
   document.getElementById('currentDate').textContent = formatDate(currentDate);
-
   renderDatePicker();
   renderTodayMatches();
   renderGroupSelector();
@@ -472,6 +623,34 @@ function showTab(tabId) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById(tabId).classList.add('active');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+async function updateResults() {
+  const btn = document.getElementById('updateBtn');
+  const spinner = btn.querySelector('.spinner-inline');
+  const text = btn.querySelector('.btn-text');
+
+  btn.classList.add('spinning');
+  spinner.style.display = 'inline-block';
+  text.textContent = 'Updating...';
+
+  // Simulate fetching from external dataset
+  await new Promise(r => setTimeout(r, 1500));
+
+  // In a real implementation, this would fetch from an API
+  // For demo, we simulate checking for new results
+  showToast('Results updated! No new matches yet.');
+
+  btn.classList.remove('spinning');
+  spinner.style.display = 'none';
+  text.textContent = '🔄 Update Official Results';
 }
 
 function renderDatePicker() {
@@ -515,74 +694,99 @@ function renderTodayMatches() {
     const homeTeam = engine.teamStats[match.home];
     const awayTeam = engine.teamStats[match.away];
 
-    let html = `<div style="font-size:0.65rem;color:var(--muted);margin-bottom:8px;">Group ${match.group} • ${match.played ? 'FT' : 'Upcoming'}</div>`;
+    let html = '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">Group ' + match.group + ' &bull; ' + (match.venue || 'TBD') + '</div>';
+    html += '<div style="font-size:0.6rem;color:var(--accent);margin-bottom:8px;">' + (match.played ? '✅ FINAL' : '⏳ UPCOMING') + '</div>';
 
     if (match.played) {
-      html += `
-        <div class="match-card">
-          <div class="match-team">
-            <span class="team-flag">${getFlag(match.home)}</span>
-            <span class="team-name">${match.home}</span>
-          </div>
-          <div class="match-score">${match.home_score} - ${match.away_score}</div>
-          <div class="match-team away">
-            <span class="team-name">${match.away}</span>
-            <span class="team-flag">${getFlag(match.away)}</span>
-          </div>
-        </div>
-      `;
+      html += '<div class="match-card">' +
+        '<div class="match-team"><span class="team-flag">' + getFlag(match.home) + '</span><span class="team-name">' + match.home + '</span></div>' +
+        '<div class="match-score">' + match.home_score + ' - ' + match.away_score + '</div>' +
+        '<div class="match-team away"><span class="team-name">' + match.away + '</span><span class="team-flag">' + getFlag(match.away) + '</span></div>' +
+        '</div>';
     } else {
-      html += `
-        <div class="match-card">
-          <div class="match-team">
-            <span class="team-flag">${getFlag(match.home)}</span>
-            <span class="team-name">${match.home}</span>
-          </div>
-          <div class="match-time">VS</div>
-          <div class="match-team away">
-            <span class="team-name">${match.away}</span>
-            <span class="team-flag">${getFlag(match.away)}</span>
-          </div>
-        </div>
-      `;
+      html += '<div class="match-card">' +
+        '<div class="match-team"><span class="team-flag">' + getFlag(match.home) + '</span><span class="team-name">' + match.home + '</span></div>' +
+        '<div class="match-time">VS</div>' +
+        '<div class="match-team away"><span class="team-name">' + match.away + '</span><span class="team-flag">' + getFlag(match.away) + '</span></div>' +
+        '</div>';
     }
 
     // PBE Prediction
     const pred = engine.predictMatch(match.home, match.away);
     if (pred) {
-      html += `
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);">
-          <div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">🔮 PBE Prediction</div>
-          <div class="pbe-display">
-            <div class="pbe-score-box">
-              <div class="pbe-score-value">${(pred.homePBE * 100).toFixed(1)}</div>
-              <div class="pbe-score-label">${match.home}</div>
-            </div>
-            <div class="pbe-vs">VS</div>
-            <div class="pbe-score-box away">
-              <div class="pbe-score-value">${(pred.awayPBE * 100).toFixed(1)}</div>
-              <div class="pbe-score-label">${match.away}</div>
-            </div>
-          </div>
-          <div class="match-prediction">
-            <span class="pred-label">${pred.homeWin}%</span>
-            <div class="pred-bar">
-              <div class="pred-fill pred-home" style="width:${pred.homeWin}%"></div>
-            </div>
-            <span class="pred-label" style="color:var(--muted);">${pred.draw}%</span>
-            <div class="pred-bar">
-              <div class="pred-fill pred-draw" style="width:${pred.draw}%"></div>
-            </div>
-            <span class="pred-label">${pred.awayWin}%</span>
-            <div class="pred-bar">
-              <div class="pred-fill pred-away" style="width:${pred.awayWin}%"></div>
-            </div>
-          </div>
-          <div style="text-align:center;margin-top:6px;">
-            <span class="pbe-fav">🏆 Favorite: ${pred.favorite} (+${pred.margin})</span>
-          </div>
-        </div>
-      `;
+      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);">' +
+        '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">🔮 PBE Prediction</div>' +
+        '<div class="pbe-display">' +
+        '<div class="pbe-score-box"><div class="pbe-score-value">' + (pred.homePBE * 100).toFixed(1) + '</div><div class="pbe-score-label">' + match.home + '</div></div>' +
+        '<div class="pbe-vs">VS</div>' +
+        '<div class="pbe-score-box away"><div class="pbe-score-value">' + (pred.awayPBE * 100).toFixed(1) + '</div><div class="pbe-score-label">' + match.away + '</div></div>' +
+        '</div>' +
+        '<div class="match-prediction">' +
+        '<span class="pred-label">' + pred.homeWin + '%</span><div class="pred-bar"><div class="pred-fill pred-home" style="width:' + pred.homeWin + '%"></div></div>' +
+        '<span class="pred-label" style="color:var(--muted);">' + pred.draw + '%</span><div class="pred-bar"><div class="pred-fill pred-draw" style="width:' + pred.draw + '%"></div></div>' +
+        '<span class="pred-label">' + pred.awayWin + '%</span><div class="pred-bar"><div class="pred-fill pred-away" style="width:' + pred.awayWin + '%"></div></div>' +
+        '</div>' +
+        '<div style="text-align:center;margin-top:6px;"><span class="pbe-fav">🏆 Favorite: ' + pred.favorite + ' (+' + pred.margin + ')</span></div>';
+
+      // Predicted vs Actual Score Comparison
+      if (match.played) {
+        const actualHome = match.home_score;
+        const actualAway = match.away_score;
+        const predHome = pred.predHomeGoals;
+        const predAway = pred.predAwayGoals;
+        const diffHome = actualHome - predHome;
+        const diffAway = actualAway - predAway;
+
+        function getDiffClass(d) {
+          if (Math.abs(d) === 0) return 'diff-good';
+          if (Math.abs(d) === 1) return 'diff-ok';
+          return 'diff-bad';
+        }
+        function getDiffText(d) {
+          if (d === 0) return '✓ Exact';
+          return (d > 0 ? '+' : '') + d;
+        }
+
+        html += '<div class="pred-actual-box">' +
+          '<div class="pred-actual-title">📊 Predicted vs Actual Goals</div>' +
+          '<div class="pred-actual-row">' +
+          '<div class="pred-actual-label">' + match.home + '</div>' +
+          '<div class="pred-actual-scores">' +
+          '<div class="pred-score-display"><div class="lbl">Predicted</div><div class="val">' + predHome + '</div></div>' +
+          '<div style="color:var(--muted);font-size:0.8rem;">→</div>' +
+          '<div class="pred-score-display actual"><div class="lbl">Actual</div><div class="val">' + actualHome + '</div></div>' +
+          '</div>' +
+          '<div class="pred-score-display" style="min-width:50px;background:rgba(255,255,255,0.05);"><div class="lbl">Diff</div><div class="diff ' + getDiffClass(diffHome) + '">' + getDiffText(diffHome) + '</div></div>' +
+          '</div>' +
+          '<div class="pred-actual-row">' +
+          '<div class="pred-actual-label">' + match.away + '</div>' +
+          '<div class="pred-actual-scores">' +
+          '<div class="pred-score-display"><div class="lbl">Predicted</div><div class="val">' + predAway + '</div></div>' +
+          '<div style="color:var(--muted);font-size:0.8rem;">→</div>' +
+          '<div class="pred-score-display actual"><div class="lbl">Actual</div><div class="val">' + actualAway + '</div></div>' +
+          '</div>' +
+          '<div class="pred-score-display" style="min-width:50px;background:rgba(255,255,255,0.05);"><div class="lbl">Diff</div><div class="diff ' + getDiffClass(diffAway) + '">' + getDiffText(diffAway) + '</div></div>' +
+          '</div>' +
+          '</div>';
+      } else {
+        // For future matches, show predicted score
+        html += '<div class="pred-actual-box">' +
+          '<div class="pred-actual-title">🔮 PBE Predicted Score</div>' +
+          '<div class="pred-actual-row" style="justify-content:center;">' +
+          '<div class="pred-score-display" style="min-width:80px;">' +
+          '<div class="lbl">' + match.home + '</div>' +
+          '<div class="val">' + pred.predHomeGoals + '</div>' +
+          '</div>' +
+          '<div style="color:var(--muted);font-size:1.2rem;font-weight:800;">:</div>' +
+          '<div class="pred-score-display" style="min-width:80px;">' +
+          '<div class="lbl">' + match.away + '</div>' +
+          '<div class="val">' + pred.predAwayGoals + '</div>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      }
+
+      html += '</div>';
     }
 
     card.innerHTML = html;
@@ -616,18 +820,18 @@ function renderStandings(group) {
 
   standings.forEach((t, i) => {
     const posClass = i < 2 ? 'qualify' : 'elim';
-    html += `<tr>
-      <td><span class="pos ${posClass}">${i+1}</span> <span class="team-cell">${getFlag(t.name)} ${t.name}</span></td>
-      <td>${t.matches}</td>
-      <td>${t.wins}</td>
-      <td>${t.draws}</td>
-      <td>${t.losses}</td>
-      <td class="gf">${t.gf}</td>
-      <td class="ga">${t.ga}</td>
-      <td class="gd">${t.gd > 0 ? '+' : ''}${t.gd}</td>
-      <td class="pts">${t.pts}</td>
-      <td style="color:var(--accent);font-weight:700">${(t.pbe * 100).toFixed(0)}</td>
-    </tr>`;
+    html += '<tr>' +
+      '<td><span class="pos ' + posClass + '">' + (i+1) + '</span> <span class="team-cell">' + getFlag(t.name) + ' ' + t.name + '</span></td>' +
+      '<td>' + t.matches + '</td>' +
+      '<td>' + t.wins + '</td>' +
+      '<td>' + t.draws + '</td>' +
+      '<td>' + t.losses + '</td>' +
+      '<td class="gf">' + t.gf + '</td>' +
+      '<td class="ga">' + t.ga + '</td>' +
+      '<td class="gd">' + (t.gd > 0 ? '+' : '') + t.gd + '</td>' +
+      '<td class="pts">' + t.pts + '</td>' +
+      '<td style="color:var(--accent);font-weight:700">' + (t.pbe * 100).toFixed(0) + '</td>' +
+      '</tr>';
   });
 
   html += '</table></div>';
@@ -648,17 +852,16 @@ function renderPBERankings() {
     else if (t.rank === 2) numClass = 'silver';
     else if (t.rank === 3) numClass = 'bronze';
 
-    item.innerHTML = `
-      <div class="rank-num ${numClass}">${t.rank}</div>
-      <div class="rank-info">
-        <div class="rank-team">${getFlag(t.name)} ${t.name}</div>
-        <div class="rank-meta">${t.matches} matches • ${t.pts} pts • GD ${t.gd > 0 ? '+' : ''}${t.gd}</div>
-      </div>
-      <div class="rank-bar-container">
-        <div class="rank-bar" style="width:${t.pbe * 100}%"></div>
-      </div>
-      <div class="rank-score">${(t.pbe * 100).toFixed(1)}</div>
-    `;
+    item.innerHTML =
+      '<div class="rank-num ' + numClass + '">' + t.rank + '</div>' +
+      '<div class="rank-info">' +
+      '<div class="rank-team">' + getFlag(t.name) + ' ' + t.name + '</div>' +
+      '<div class="rank-meta">' + t.matches + ' matches &bull; ' + t.pts + ' pts &bull; GD ' + (t.gd > 0 ? '+' : '') + t.gd + '</div>' +
+      '</div>' +
+      '<div class="rank-bar-container">' +
+      '<div class="rank-bar" style="width:' + (t.pbe * 100) + '%"></div>' +
+      '</div>' +
+      '<div class="rank-score">' + (t.pbe * 100).toFixed(1) + '</div>';
     list.appendChild(item);
   });
 }
@@ -667,43 +870,15 @@ function getFlag(team) {
   const flags = {
     'Argentina': '🇦🇷', 'France': '🇫🇷', 'Brazil': '🇧🇷', 'Germany': '🇩🇪', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     'Spain': '🇪🇸', 'Portugal': '🇵🇹', 'Netherlands': '🇳🇱', 'Croatia': '🇭🇷', 'Uruguay': '🇺🇾',
-    'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Mexico': '🇲🇽', 'USA': '🇺🇸', 'Canada': '🇨🇦',
+    'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Mexico': '🇲🇽', 'United States': '🇺🇸', 'Canada': '🇨🇦',
     'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Australia': '🇦🇺', 'Iran': '🇮🇷', 'Saudi Arabia': '🇸🇦',
     'Qatar': '🇶🇦', 'Iraq': '🇮🇶', 'Uzbekistan': '🇺🇿', 'Jordan': '🇯🇴', 'Morocco': '🇲🇦',
-    'Senegal': '🇸🇳', 'Tunisia': '🇹🇳', 'Ghana': '🇬🇭', 'Cameroon': '🇨🇲', 'Egypt': '🇪🇬',
+    'Senegal': '🇸🇳', 'Tunisia': '🇹🇳', 'Ghana': '🇬🇭', 'Egypt': '🇪🇬',
     'Algeria': '🇩🇿', 'Ivory Coast': '🇨🇮', 'South Africa': '🇿🇦', 'Cape Verde': '🇨🇻',
-    'Congo DR': '🇨🇩', 'Ecuador': '🇪🇨', 'Paraguay': '🇵🇾', 'Colombia': '🇨🇴', 'Chile': '🇨🇱',
-    'Peru': '🇵🇪', 'Venezuela': '🇻🇪', 'Bolivia': '🇧🇴', 'Türkiye': '🇹🇷', 'Czechia': '🇨🇿',
-    'Poland': '🇵🇱', 'Denmark': '🇩🇰', 'Serbia': '🇷🇸', 'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-    'Austria': '🇦🇹', 'Hungary': '🇭🇺', 'Romania': '🇷🇴', 'Slovakia': '🇸🇰', 'Ukraine': '🇺🇦',
-    'Slovenia': '🇸🇮', 'Georgia': '🇬🇪', 'Costa Rica': '🇨🇷', 'Panama': '🇵🇦', 'Haiti': '🇭🇹',
-    'Jamaica': '🇯🇲', 'Curaçao': '🇨🇼', 'New Zealand': '🇳🇿', 'Norway': '🇳🇴', 'Sweden': '🇸🇪',
-    'Finland': '🇫🇮', 'Iceland': '🇮🇸', 'Northern Ireland': '🇬🇧', 'Republic of Ireland': '🇮🇪',
-    'Greece': '🇬🇷', 'Israel': '🇮🇱', 'Kazakhstan': '🇰🇿', 'Belarus': '🇧🇾', 'Bulgaria': '🇧🇬',
-    'Cyprus': '🇨🇾', 'Estonia': '🇪🇪', 'Latvia': '🇱🇻', 'Lithuania': '🇱🇹', 'Luxembourg': '🇱🇺',
-    'Malta': '🇲🇹', 'Moldova': '🇲🇩', 'Montenegro': '🇲🇪', 'North Macedonia': '🇲🇰', 'Albania': '🇦🇱',
-    'Armenia': '🇦🇲', 'Azerbaijan': '🇦🇿', 'Faroe Islands': '🇫🇴', 'Gibraltar': '🇬🇮',
-    'Kosovo': '🇽🇰', 'Liechtenstein': '🇱🇮', 'San Marino': '🇸🇲', 'Andorra': '🇦🇩',
-    'Guinea': '🇬🇳', 'Mali': '🇲🇱', 'Burkina Faso': '🇧🇫', 'Gabon': '🇬🇦', 'Angola': '🇦🇴',
-    'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼', 'Mozambique': '🇲🇿', 'Libya': '🇱🇾', 'Equatorial Guinea': '🇬🇶',
-    'Sudan': '🇸🇩', 'Niger': '🇳🇪', 'Chad': '🇹🇩', 'Central African Republic': '🇨🇫',
-    'Madagascar': '🇲🇬', 'Mauritania': '🇲🇷', 'Gambia': '🇬🇲', 'Benin': '🇧🇯', 'Togo': '🇹🇬',
-    'Sierra Leone': '🇸🇱', 'Liberia': '🇱🇷', 'Rwanda': '🇷🇼', 'Burundi': '🇧🇮', 'Lesotho': '🇱🇸',
-    'Botswana': '🇧🇼', 'Eswatini': '🇸🇿', 'Comoros': '🇰🇲', 'São Tomé and Príncipe': '🇸🇹',
-    'Seychelles': '🇸🇨', 'Mauritius': '🇲🇺', 'Djibouti': '🇩🇯', 'Eritrea': '🇪🇷',
-    'Somalia': '🇸🇴', 'South Sudan': '🇸🇸', 'China': '🇨🇳', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳',
-    'Malaysia': '🇲🇾', 'Indonesia': '🇮🇩', 'Philippines': '🇵🇭', 'Singapore': '🇸🇬',
-    'Myanmar': '🇲🇲', 'Cambodia': '🇰🇭', 'Laos': '🇱🇦', 'Brunei': '🇧🇳', 'Timor-Leste': '🇹🇱',
-    'Guam': '🇬🇺', 'Fiji': '🇫🇯', 'Papua New Guinea': '🇵🇬', 'Solomon Islands': '🇸🇧',
-    'Vanuatu': '🇻🇺', 'New Caledonia': '🇳🇨', 'Tahiti': '🇵🇫', 'Samoa': '🇼🇸', 'Tonga': '🇹🇴',
-    'Cook Islands': '🇨🇰', 'American Samoa': '🇦🇸', 'Honduras': '🇭🇳', 'Guatemala': '🇬🇹',
-    'El Salvador': '🇸🇻', 'Nicaragua': '🇳🇮', 'Dominican Republic': '🇩🇴', 'Cuba': '🇨🇺',
-    'Trinidad and Tobago': '🇹🇹', 'Barbados': '🇧🇧', 'Saint Kitts and Nevis': '🇰🇳',
-    'Antigua and Barbuda': '🇦🇬', 'Saint Lucia': '🇱🇨', 'Grenada': '🇬🇩',
-    'Saint Vincent and the Grenadines': '🇻🇨', 'Dominica': '🇩🇲', 'Montserrat': '🇲🇸',
-    'British Virgin Islands': '🇻🇬', 'Anguilla': '🇦🇮', 'Turks and Caicos Islands': '🇹🇨',
-    'Aruba': '🇦🇼', 'Bonaire': '🇧🇶', 'Sint Maarten': '🇸🇽', 'Guyana': '🇬🇾',
-    'Suriname': '🇸🇷'
+    'DR Congo': '🇨🇩', 'Ecuador': '🇪🇨', 'Paraguay': '🇵🇾', 'Colombia': '🇨🇴',
+    'Turkiye': '🇹🇷', 'Czechia': '🇨🇿', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Austria': '🇦🇹',
+    'Panama': '🇵🇦', 'Haiti': '🇭🇹', 'Curacao': '🇨🇼', 'New Zealand': '🇳🇿',
+    'Bosnia-Herzegovina': '🇧🇦', 'Norway': '🇳🇴', 'Sweden': '🇸🇪'
   };
   return flags[team] || '🏳️';
 }
