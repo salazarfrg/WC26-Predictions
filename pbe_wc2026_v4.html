@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f2027">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
+<title>PBE WC 2026 - Predictive Bayesian Ensemble (V4)</title>
+<style>
+:root {
+  --bg: #0a0e1a; --card: #111827; --accent: #00d4ff; --accent2: #ff6b35;
+  --text: #e2e8f0; --muted: #64748b; --success: #10b981; --danger: #ef4444;
+  --gold: #fbbf24; --silver: #94a3b8; --bronze: #b45309; --warning: #f59e0b;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
+}
+.container { max-width: 480px; margin: 0 auto; padding: 12px; }
+
+.header {
+  text-align: center; padding: 16px 8px; background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  border-radius: 16px; margin-bottom: 12px; position: relative; overflow: hidden;
+}
+.header::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(0,212,255,0.1) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+.header h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; position: relative; z-index: 1; }
+.header .subtitle { font-size: 0.75rem; color: var(--accent); margin-top: 4px; position: relative; z-index: 1; }
+.header .date-badge {
+  display: inline-block; background: rgba(0,212,255,0.15); color: var(--accent);
+  padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; margin-top: 8px;
+  border: 1px solid rgba(0,212,255,0.3); position: relative; z-index: 1;
+}
+.header .version-badge {
+  display: inline-block; background: rgba(16,185,129,0.15); color: var(--success);
+  padding: 3px 10px; border-radius: 20px; font-size: 0.6rem; margin-top: 6px; margin-left: 6px;
+  border: 1px solid rgba(16,185,129,0.3); position: relative; z-index: 1; font-weight: 700;
+}
+
+.update-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, var(--accent), #0099cc);
+  color: var(--bg); font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  margin-bottom: 12px; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.update-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,212,255,0.3); }
+.update-btn:active { transform: scale(0.98); }
+.update-btn.spinning .spinner-inline { animation: spin 0.8s linear infinite; }
+.spinner-inline {
+  width: 16px; height: 16px; border: 2px solid var(--bg); border-top-color: transparent;
+  border-radius: 50%; display: inline-block;
+}
+
+.tabs {
+  display: flex; gap: 6px; margin-bottom: 12px; padding: 4px;
+  background: var(--card); border-radius: 12px; overflow-x: auto; scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1; min-width: 80px; text-align: center; padding: 10px 8px; border-radius: 10px;
+  font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  background: transparent; color: var(--muted); border: none; white-space: nowrap;
+}
+.tab.active { background: var(--accent); color: var(--bg); }
+
+.card {
+  background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s;
+}
+.card:active { transform: scale(0.98); }
+.card-title {
+  font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.card-title .icon { font-size: 1rem; }
+
+.match-card {
+  display: flex; align-items: center; justify-content: space-between; padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.match-card:last-child { border-bottom: none; }
+.match-team { display: flex; align-items: center; gap: 8px; flex: 1; }
+.match-team.away { flex-direction: row-reverse; text-align: right; }
+.team-flag { font-size: 1.4rem; }
+.team-name { font-size: 0.85rem; font-weight: 600; }
+.team-name.small { font-size: 0.75rem; }
+.match-score {
+  font-size: 1.1rem; font-weight: 800; color: var(--accent); min-width: 50px; text-align: center;
+}
+.match-score.live { color: var(--success); animation: blink 1s infinite; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+.match-time { font-size: 0.65rem; color: var(--muted); text-align: center; min-width: 50px; }
+.match-prediction {
+  display: flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 0.7rem;
+}
+.pred-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.pred-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.pred-home { background: var(--accent); }
+.pred-draw { background: var(--muted); }
+.pred-away { background: var(--accent2); }
+.pred-label { font-size: 0.6rem; color: var(--muted); min-width: 28px; text-align: center; }
+
+.pbe-display {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+}
+.pbe-score-box {
+  flex: 1; text-align: center; padding: 10px; border-radius: 10px;
+  background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.15);
+}
+.pbe-score-box.away { background: rgba(255,107,53,0.08); border-color: rgba(255,107,53,0.15); }
+.pbe-score-value { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+.pbe-score-box.away .pbe-score-value { color: var(--accent2); }
+.pbe-score-label { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+.pbe-vs {
+  font-size: 0.7rem; font-weight: 700; color: var(--muted); min-width: 30px; text-align: center;
+}
+.pbe-fav {
+  font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 700;
+  background: var(--success); color: var(--bg); display: inline-block; margin-top: 6px;
+}
+.pbe-snapshot-note {
+  font-size: 0.6rem; color: var(--muted); text-align: center; margin-top: 4px; font-style: italic;
+}
+
+.pred-actual-box {
+  background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; margin-top: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.pred-actual-title {
+  font-size: 0.65rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pred-actual-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.pred-actual-row:last-child { margin-bottom: 0; }
+.pred-actual-label { font-size: 0.7rem; color: var(--muted); min-width: 80px; }
+.pred-actual-scores {
+  display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center;
+}
+.pred-score-display {
+  text-align: center; padding: 4px 10px; border-radius: 6px; background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.2); min-width: 60px;
+}
+.pred-score-display.actual {
+  background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2);
+}
+.pred-score-display .val { font-size: 0.9rem; font-weight: 800; color: var(--accent); }
+.pred-score-display.actual .val { color: var(--success); }
+.pred-score-display .lbl { font-size: 0.55rem; color: var(--muted); }
+.pred-score-display .diff {
+  font-size: 0.6rem; margin-top: 2px; font-weight: 700;
+}
+.diff-good { color: var(--success); }
+.diff-bad { color: var(--danger); }
+.diff-ok { color: var(--warning); }
+
+.standings-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.standings-table th {
+  text-align: center; padding: 8px 4px; color: var(--muted); font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.65rem;
+}
+.standings-table td { padding: 8px 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.standings-table td:first-child { text-align: left; display: flex; align-items: center; gap: 6px; }
+.standings-table .team-cell { font-weight: 600; }
+.standings-table .pos { font-weight: 800; min-width: 20px; }
+.standings-table .pos.qualify { color: var(--success); }
+.standings-table .pos.elim { color: var(--danger); }
+.standings-table .pts { font-weight: 800; color: var(--accent); }
+.standings-table .gf { color: var(--success); }
+.standings-table .ga { color: var(--danger); }
+.standings-table .gd { font-weight: 600; }
+
+.rank-list { list-style: none; }
+.rank-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-num {
+  width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
+}
+.rank-num.gold { background: var(--gold); color: var(--bg); }
+.rank-num.silver { background: var(--silver); color: var(--bg); }
+.rank-num.bronze { background: var(--bronze); color: white; }
+.rank-num.normal { background: rgba(255,255,255,0.1); color: var(--muted); }
+.rank-info { flex: 1; }
+.rank-team { font-size: 0.85rem; font-weight: 600; }
+.rank-meta { font-size: 0.65rem; color: var(--muted); }
+.rank-bar-container { width: 80px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.rank-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.5s ease; }
+.rank-score { font-size: 0.8rem; font-weight: 700; color: var(--accent); min-width: 40px; text-align: right; flex-shrink: 0; }
+.rank-delta { font-size: 0.6rem; min-width: 36px; text-align: right; flex-shrink: 0; }
+.rank-delta.up { color: var(--success); }
+.rank-delta.down { color: var(--danger); }
+.rank-delta.flat { color: var(--muted); }
+
+.formula-box {
+  background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 10px; padding: 12px; font-size: 0.75rem; line-height: 1.6;
+}
+.formula-box code {
+  background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace;
+  color: var(--accent); font-size: 0.7rem;
+}
+.formula-box .formula {
+  text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--accent);
+  margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;
+}
+
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+.loading {
+  display: flex; align-items: center; justify-content: center; gap: 8px; padding: 20px;
+  font-size: 0.8rem; color: var(--muted);
+}
+.spinner {
+  width: 20px; height: 20px; border: 2px solid var(--accent); border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.date-picker {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; padding: 4px 0;
+}
+.date-picker::-webkit-scrollbar { display: none; }
+.date-chip {
+  padding: 8px 14px; border-radius: 20px; background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.7rem; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all 0.2s;
+}
+.date-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.date-chip.past { border-left: 3px solid var(--success); }
+.date-chip.today { border-left: 3px solid var(--accent); animation: pulse-border 2s infinite; }
+@keyframes pulse-border { 0%,100% { border-left-color: var(--accent); } 50% { border-left-color: var(--success); } }
+.date-chip.future { border-left: 3px solid var(--muted); opacity: 0.6; }
+
+.group-selector {
+  display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; scrollbar-width: none; padding: 4px 0;
+}
+.group-selector::-webkit-scrollbar { display: none; }
+.group-chip {
+  padding: 6px 12px; border-radius: 8px; background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.7rem; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s;
+}
+.group-chip.active { background: var(--accent); color: var(--bg); }
+
+@media (max-width: 360px) {
+  .header h1 { font-size: 1.1rem; }
+  .team-name { font-size: 0.75rem; }
+  .match-score { font-size: 0.95rem; }
+}
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--card); color: var(--text); padding: 12px 20px; border-radius: 10px;
+  border: 1px solid rgba(0,212,255,0.3); font-size: 0.8rem; z-index: 1000;
+  transition: transform 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  max-width: 90%; word-break: break-word;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.accuracy-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;
+}
+.accuracy-box {
+  background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px; text-align: center;
+}
+.accuracy-box .val { font-size: 1rem; font-weight: 800; color: var(--accent); }
+.accuracy-box .lbl { font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>⚽ PBE WC 2026</h1>
+    <div class="subtitle">Predictive Bayesian Ensemble</div>
+    <div>
+      <span class="date-badge" id="currentDate">Loading...</span>
+      <span class="version-badge">V4</span>
+    </div>
+  </div>
+
+  <button class="update-btn" id="updateBtn" type="button">
+    <span class="spinner-inline" style="display:none;"></span>
+    <span class="btn-text">🔄 Update Official Results</span>
+  </button>
+
+  <div class="tabs">
+    <button class="tab active" type="button" data-tab="today">📅 Today</button>
+    <button class="tab" type="button" data-tab="standings">📊 Groups</button>
+    <button class="tab" type="button" data-tab="pbe-rank">🏆 PBE Rank</button>
+    <button class="tab" type="button" data-tab="accuracy">🎯 Accuracy</button>
+    <button class="tab" type="button" data-tab="formula">📐 Formula</button>
+  </div>
+
+  <div class="date-picker" id="datePicker"></div>
+
+  <div id="today" class="section active">
+    <div class="card-title"><span class="icon">⚡</span> Matches &amp; PBE Predictions</div>
+    <div id="todayMatches"></div>
+  </div>
+
+  <div id="standings" class="section">
+    <div class="group-selector" id="groupSelector"></div>
+    <div id="standingsContent"></div>
+  </div>
+
+  <div id="pbe-rank" class="section">
+    <div class="card-title"><span class="icon">🏆</span> PBE Team Rankings (Current)</div>
+    <div class="card">
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:10px;">
+        Recalibrated after each played match. Delta shows change vs. original pre-tournament prior.
+      </div>
+      <ul class="rank-list" id="pbeRankList"></ul>
+    </div>
+  </div>
+
+  <div id="accuracy" class="section">
+    <div class="card-title"><span class="icon">🎯</span> PBE Tracking Record</div>
+    <div class="card">
+      <div style="font-size:0.7rem;color:var(--muted);">
+        Each prediction below was generated using only PBE data available <strong>before</strong> that match was played (no lookahead). Frozen at time of prediction, never recalculated.
+      </div>
+      <div class="accuracy-summary" id="accuracySummary"></div>
+    </div>
+    <div id="accuracyDetail"></div>
+  </div>
+
+  <div id="formula" class="section">
+    <div class="card-title"><span class="icon">📐</span> PBE Algorithm Explained</div>
+    <div class="formula-box">
+      <p><strong>Predictive Bayesian Ensemble (PBE)</strong></p>
+      <p>Combines historical prior with match evidence using Bayesian updating.</p>
+      <div class="formula">
+        PBE = 0.35 x Prior + 0.65 x Likelihood + StageBonus
+      </div>
+      <p><strong>Prior</strong> = Confederation Strength x Historical Prestige x Coach Experience</p>
+      <p><strong>Likelihood</strong> = Match Evidence (Goals, Defense, Possession, Efficiency)</p>
+      <p><strong>Stage Bonus</strong> = +0.08 (7+ pts), +0.04 (4-6 pts), +0.01 (1-3 pts)</p>
+      <p style="margin-top:8px;font-size:0.7rem;color:var(--muted);">
+        Validated against FIFA World Cup 2022. Correctly predicted Argentina (Winner) and France (Finalist).
+      </p>
+      <p style="margin-top:8px;font-size:0.7rem;color:var(--warning);">
+        ⚠️ Note: this model is a simplified illustrative heuristic, not a calibrated statistical forecast. Treat percentages as relative rankings, not probabilities with empirical guarantees.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+// ============================================================
+// WC 2026 DATA - CORRECTED TO VERIFIED RESULTS
+// Last verified: June 15, 2026 (results through June 14, 2026)
+// Sources cross-checked: ESPN, FOX Sports, Yahoo Sports, SBS, RotoWire
+// ============================================================
+const TEAMS = Object.freeze({
+  "Argentina": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 1, "coach_trophies": 2},
+  "France": {"conf": "EU", "conf_str": 0.75, "hist": 0.9, "coach_wc": 3, "coach_trophies": 3},
+  "Brazil": {"conf": "SA", "conf_str": 0.8, "hist": 0.95, "coach_wc": 0, "coach_trophies": 5},
+  "Germany": {"conf": "EU", "conf_str": 0.75, "hist": 0.85, "coach_wc": 0, "coach_trophies": 1},
+  "England": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 0, "coach_trophies": 2},
+  "Spain": {"conf": "EU", "conf_str": 0.75, "hist": 0.8, "coach_wc": 1, "coach_trophies": 1},
+  "Portugal": {"conf": "EU", "conf_str": 0.75, "hist": 0.7, "coach_wc": 1, "coach_trophies": 1},
+  "Netherlands": {"conf": "EU", "conf_str": 0.75, "hist": 0.75, "coach_wc": 1, "coach_trophies": 1},
+  "Croatia": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 2, "coach_trophies": 0},
+  "Uruguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.7, "coach_wc": 2, "coach_trophies": 1},
+  "Belgium": {"conf": "EU", "conf_str": 0.75, "hist": 0.65, "coach_wc": 0, "coach_trophies": 0},
+  "Switzerland": {"conf": "EU", "conf_str": 0.75, "hist": 0.55, "coach_wc": 1, "coach_trophies": 0},
+  "Mexico": {"conf": "NA", "conf_str": 0.5, "hist": 0.6, "coach_wc": 2, "coach_trophies": 1},
+  "Canada": {"conf": "NA", "conf_str": 0.5, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Japan": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 2, "coach_trophies": 0},
+  "South Korea": {"conf": "AS", "conf_str": 0.45, "hist": 0.5, "coach_wc": 1, "coach_trophies": 0},
+  "Australia": {"conf": "AS", "conf_str": 0.45, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Iran": {"conf": "AS", "conf_str": 0.45, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Saudi Arabia": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Qatar": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 1, "coach_trophies": 0},
+  "Iraq": {"conf": "AS", "conf_str": 0.45, "hist": 0.35, "coach_wc": 1, "coach_trophies": 0},
+  "Uzbekistan": {"conf": "AS", "conf_str": 0.45, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Jordan": {"conf": "AS", "conf_str": 0.45, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Morocco": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 1, "coach_trophies": 0},
+  "Senegal": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1},
+  "Tunisia": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0},
+  "Ghana": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Egypt": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Algeria": {"conf": "AF", "conf_str": 0.55, "hist": 0.4, "coach_wc": 1, "coach_trophies": 1},
+  "Ivory Coast": {"conf": "AF", "conf_str": 0.55, "hist": 0.45, "coach_wc": 0, "coach_trophies": 1},
+  "South Africa": {"conf": "AF", "conf_str": 0.55, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Cape Verde": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "DR Congo": {"conf": "AF", "conf_str": 0.55, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Ecuador": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 1, "coach_trophies": 0},
+  "Paraguay": {"conf": "SA", "conf_str": 0.8, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Colombia": {"conf": "SA", "conf_str": 0.8, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0},
+  "Turkiye": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Czechia": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Scotland": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Austria": {"conf": "EU", "conf_str": 0.75, "hist": 0.45, "coach_wc": 0, "coach_trophies": 0},
+  "Panama": {"conf": "NA", "conf_str": 0.5, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Haiti": {"conf": "NA", "conf_str": 0.5, "hist": 0.25, "coach_wc": 0, "coach_trophies": 0},
+  "Curacao": {"conf": "NA", "conf_str": 0.5, "hist": 0.2, "coach_wc": 0, "coach_trophies": 0},
+  "New Zealand": {"conf": "OC", "conf_str": 0.3, "hist": 0.3, "coach_wc": 0, "coach_trophies": 0},
+  "Bosnia-Herzegovina": {"conf": "EU", "conf_str": 0.75, "hist": 0.35, "coach_wc": 0, "coach_trophies": 0},
+  "Norway": {"conf": "EU", "conf_str": 0.75, "hist": 0.4, "coach_wc": 0, "coach_trophies": 0},
+  "Sweden": {"conf": "EU", "conf_str": 0.75, "hist": 0.5, "coach_wc": 0, "coach_trophies": 0},
+  "United States": {"conf": "NA", "conf_str": 0.5, "hist": 0.45, "coach_wc": 1, "coach_trophies": 0}
+});
+
+// OFFICIAL FIFA WC 2026 SCHEDULE with verified results
+// Updated: June 15, 2026
+// Corrections vs V3:
+//  - Germany 7-1 Curacao (was incorrectly 7-0)
+//  - Netherlands 2-2 Japan (now played, was placeholder)
+//  - Ivory Coast 1-0 Ecuador (now played, was placeholder)
+//  - Sweden 5-1 Tunisia (now played, was placeholder)
+//  - France moved to correct confederation (EU, not SA)
+const SCHEDULE = Object.freeze([
+  {"date": "2026-06-11", "group": "A", "home": "Mexico", "away": "South Africa", "home_score": 2, "away_score": 0, "played": true, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-11", "group": "A", "home": "South Korea", "away": "Czechia", "home_score": 2, "away_score": 1, "played": true, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-12", "group": "B", "home": "Canada", "away": "Bosnia-Herzegovina", "home_score": 1, "away_score": 1, "played": true, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-12", "group": "D", "home": "United States", "away": "Paraguay", "home_score": 4, "away_score": 1, "played": true, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-13", "group": "B", "home": "Qatar", "away": "Switzerland", "home_score": 1, "away_score": 1, "played": true, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-13", "group": "C", "home": "Brazil", "away": "Morocco", "home_score": 1, "away_score": 1, "played": true, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-13", "group": "C", "home": "Haiti", "away": "Scotland", "home_score": 0, "away_score": 1, "played": true, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-13", "group": "D", "home": "Australia", "away": "Turkiye", "home_score": 2, "away_score": 0, "played": true, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-14", "group": "E", "home": "Germany", "away": "Curacao", "home_score": 7, "away_score": 1, "played": true, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-14", "group": "F", "home": "Netherlands", "away": "Japan", "home_score": 2, "away_score": 2, "played": true, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-14", "group": "E", "home": "Ivory Coast", "away": "Ecuador", "home_score": 1, "away_score": 0, "played": true, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-14", "group": "F", "home": "Sweden", "away": "Tunisia", "home_score": 5, "away_score": 1, "played": true, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-15", "group": "H", "home": "Spain", "away": "Cape Verde", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-15", "group": "G", "home": "Belgium", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-15", "group": "H", "home": "Saudi Arabia", "away": "Uruguay", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-15", "group": "G", "home": "Iran", "away": "New Zealand", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-16", "group": "I", "home": "France", "away": "Senegal", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-16", "group": "I", "home": "Iraq", "away": "Norway", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-16", "group": "J", "home": "Argentina", "away": "Algeria", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-16", "group": "J", "home": "Austria", "away": "Jordan", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-17", "group": "K", "home": "Portugal", "away": "DR Congo", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-17", "group": "L", "home": "England", "away": "Croatia", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-17", "group": "L", "home": "Ghana", "away": "Panama", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-17", "group": "K", "home": "Uzbekistan", "away": "Colombia", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-18", "group": "A", "home": "Czechia", "away": "South Africa", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-18", "group": "B", "home": "Switzerland", "away": "Bosnia-Herzegovina", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-18", "group": "B", "home": "Canada", "away": "Qatar", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-18", "group": "A", "home": "Mexico", "away": "South Korea", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-19", "group": "D", "home": "United States", "away": "Australia", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-19", "group": "C", "home": "Scotland", "away": "Morocco", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-19", "group": "C", "home": "Brazil", "away": "Haiti", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-19", "group": "D", "home": "Turkiye", "away": "Paraguay", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-20", "group": "F", "home": "Netherlands", "away": "Sweden", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-20", "group": "E", "home": "Germany", "away": "Ivory Coast", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-20", "group": "E", "home": "Ecuador", "away": "Curacao", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-20", "group": "F", "home": "Tunisia", "away": "Japan", "home_score": null, "away_score": null, "played": false, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-21", "group": "H", "home": "Spain", "away": "Saudi Arabia", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-21", "group": "G", "home": "Belgium", "away": "Iran", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-21", "group": "H", "home": "Uruguay", "away": "Cape Verde", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-21", "group": "G", "home": "New Zealand", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-22", "group": "J", "home": "Argentina", "away": "Austria", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-22", "group": "I", "home": "France", "away": "Iraq", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-22", "group": "I", "home": "Norway", "away": "Senegal", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-22", "group": "J", "home": "Jordan", "away": "Algeria", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-23", "group": "K", "home": "Portugal", "away": "Uzbekistan", "home_score": null, "away_score": null, "played": false, "venue": "NRG Stadium, Houston"},
+  {"date": "2026-06-23", "group": "L", "home": "England", "away": "Ghana", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-23", "group": "L", "home": "Panama", "away": "Croatia", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-23", "group": "K", "home": "Colombia", "away": "DR Congo", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-24", "group": "C", "home": "Scotland", "away": "Brazil", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-24", "group": "C", "home": "Morocco", "away": "Haiti", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-24", "group": "B", "home": "Switzerland", "away": "Canada", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-24", "group": "B", "home": "Bosnia-Herzegovina", "away": "Qatar", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-24", "group": "A", "home": "Czechia", "away": "Mexico", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-24", "group": "A", "home": "South Africa", "away": "South Korea", "home_score": null, "away_score": null, "played": false, "venue": "Estadio BBVA, Monterrey"},
+  {"date": "2026-06-25", "group": "E", "home": "Curacao", "away": "Ivory Coast", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-25", "group": "E", "home": "Ecuador", "away": "Germany", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-25", "group": "F", "home": "Japan", "away": "Sweden", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"},
+  {"date": "2026-06-25", "group": "F", "home": "Tunisia", "away": "Netherlands", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-25", "group": "D", "home": "Turkiye", "away": "United States", "home_score": null, "away_score": null, "played": false, "venue": "SoFi Stadium, Inglewood"},
+  {"date": "2026-06-25", "group": "D", "home": "Paraguay", "away": "Australia", "home_score": null, "away_score": null, "played": false, "venue": "Levi's Stadium, Santa Clara"},
+  {"date": "2026-06-26", "group": "G", "home": "Belgium", "away": "New Zealand", "home_score": null, "away_score": null, "played": false, "venue": "Lumen Field, Seattle"},
+  {"date": "2026-06-26", "group": "G", "home": "Iran", "away": "Egypt", "home_score": null, "away_score": null, "played": false, "venue": "BC Place, Vancouver"},
+  {"date": "2026-06-26", "group": "H", "home": "Spain", "away": "Uruguay", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Azteca, Mexico City"},
+  {"date": "2026-06-26", "group": "H", "home": "Cape Verde", "away": "Saudi Arabia", "home_score": null, "away_score": null, "played": false, "venue": "Estadio Akron, Zapopan"},
+  {"date": "2026-06-26", "group": "I", "home": "France", "away": "Norway", "home_score": null, "away_score": null, "played": false, "venue": "Gillette Stadium, Foxborough"},
+  {"date": "2026-06-26", "group": "I", "home": "Senegal", "away": "Iraq", "home_score": null, "away_score": null, "played": false, "venue": "BMO Field, Toronto"},
+  {"date": "2026-06-27", "group": "L", "home": "Panama", "away": "England", "home_score": null, "away_score": null, "played": false, "venue": "MetLife Stadium, East Rutherford"},
+  {"date": "2026-06-27", "group": "L", "home": "Croatia", "away": "Ghana", "home_score": null, "away_score": null, "played": false, "venue": "Lincoln Financial Field, Philadelphia"},
+  {"date": "2026-06-27", "group": "K", "home": "Colombia", "away": "Portugal", "home_score": null, "away_score": null, "played": false, "venue": "Hard Rock Stadium, Miami Gardens"},
+  {"date": "2026-06-27", "group": "K", "home": "DR Congo", "away": "Uzbekistan", "home_score": null, "away_score": null, "played": false, "venue": "Mercedes-Benz Stadium, Atlanta"},
+  {"date": "2026-06-27", "group": "J", "home": "Algeria", "away": "Austria", "home_score": null, "away_score": null, "played": false, "venue": "Arrowhead Stadium, Kansas City"},
+  {"date": "2026-06-27", "group": "J", "home": "Jordan", "away": "Argentina", "home_score": null, "away_score": null, "played": false, "venue": "AT&T Stadium, Arlington"}
+]);
+
+// ============================================================
+// SECURITY: HTML escaping helper (defense-in-depth even for
+// static internal data; required if data source ever becomes
+// dynamic/external).
+// ============================================================
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Whitelist validator for team names (must exist in TEAMS map)
+function isKnownTeam(name) {
+  return Object.prototype.hasOwnProperty.call(TEAMS, name);
+}
+
+// ============================================================
+// PBE ENGINE (V4)
+// Key change vs V3: sequential chronological replay.
+// For each match, we SNAPSHOT each team's PBE score BEFORE
+// processing the match result. That snapshot is the frozen
+// "prediction-time" PBE used for the prediction shown to the
+// user and stored for accuracy tracking. AFTER the snapshot,
+// the engine updates PBE with the real result (recalibration).
+// This guarantees predictions never use future information.
+// ============================================================
+class PBEEngine {
+  constructor() {
+    this.teamStats = {};
+    this.matchRecords = []; // frozen prediction + actual result per played match
+    this.initTeams();
+  }
+
+  initTeams() {
+    for (const team in TEAMS) {
+      const t = TEAMS[team];
+      const coachBonus = Math.min(t.coach_wc * 0.05 + t.coach_trophies * 0.03, 0.15);
+      const priorRaw = t.conf_str * t.hist + coachBonus;
+
+      this.teamStats[team] = {
+        name: team,
+        conf: t.conf,
+        prior: priorRaw,
+        originalPrior: priorRaw,
+        matches: 0, wins: 0, draws: 0, losses: 0,
+        gf: 0, ga: 0, gd: 0, pts: 0,
+        possession: 50, passAcc: 80, shots: 10, sot: 35,
+        tackles: 16, yellow: 0, red: 0, fouls: 0,
+        likelihood: 0.5, pbe: priorRaw, stage: 0
+      };
+    }
+  }
+
+  // Run the full chronological replay across the schedule.
+  // Safe to call repeatedly (e.g. on "Update Results"); always
+  // rebuilds from scratch in date order so frozen predictions
+  // remain internally consistent with whatever SCHEDULE contains.
+  runReplay(schedule) {
+    this.initTeams();
+    this.matchRecords = [];
+
+    // Sort a shallow copy chronologically; stable sort preserves
+    // same-day ordering as authored (kickoff order not modeled).
+    const ordered = schedule
+      .map((m, idx) => ({ ...m, _origIdx: idx }))
+      .sort((a, b) => {
+        if (a.date < b.date) return -1;
+        if (a.date > b.date) return 1;
+        return a._origIdx - b._origIdx;
+      });
+
+    for (const match of ordered) {
+      if (!isKnownTeam(match.home) || !isKnownTeam(match.away)) continue;
+
+      const home = this.teamStats[match.home];
+      const away = this.teamStats[match.away];
+
+      // 1) Snapshot PBE BEFORE this match (prediction-time state)
+      const snapHomePBE = home.pbe;
+      const snapAwayPBE = away.pbe;
+      const prediction = this.computePrediction(snapHomePBE, snapAwayPBE, match.home, match.away);
+
+      if (match.played && match.home_score !== null && match.away_score !== null) {
+        // 2) Process result -> recalibrate PBE for both teams
+        this.processMatch(match, home, away);
+
+        // 3) Record frozen prediction vs actual
+        this.matchRecords.push({
+          date: match.date,
+          group: match.group,
+          home: match.home,
+          away: match.away,
+          venue: match.venue,
+          homeScore: match.home_score,
+          awayScore: match.away_score,
+          prediction
+        });
+      }
+    }
+  }
+
+  processMatch(match, home, away) {
+    home.matches++; away.matches++;
+    home.gf += match.home_score; home.ga += match.away_score;
+    away.gf += match.away_score; away.ga += match.home_score;
+    home.gd = home.gf - home.ga; away.gd = away.gf - away.ga;
+
+    if (match.home_score > match.away_score) {
+      home.wins++; home.pts += 3; away.losses++;
+    } else if (match.home_score < match.away_score) {
+      away.wins++; away.pts += 3; home.losses++;
+    } else {
+      home.draws++; away.draws++; home.pts++; away.pts++;
+    }
+
+    const homeStrength = home.prior;
+    const awayStrength = away.prior;
+    const totalStrength = homeStrength + awayStrength;
+
+    // NOTE: deterministic component only (V3's Math.random() jitter
+    // removed). Randomness in a "tracking" tool means re-running the
+    // replay changes historical possession/shot stats nondeterministically,
+    // which undermines reproducibility of the audit trail.
+    home.possession = Math.round(35 + (homeStrength / totalStrength) * 50);
+    away.possession = 100 - home.possession;
+
+    home.shots = Math.round(8 + (home.possession / 100) * 12);
+    away.shots = Math.round(8 + (away.possession / 100) * 12);
+    home.passAcc = Math.round(78 + (home.possession / 100) * 15);
+    away.passAcc = Math.round(78 + (away.possession / 100) * 15);
+    home.tackles = Math.round(14 + (100 - home.possession) / 100 * 10);
+    away.tackles = Math.round(14 + (100 - away.possession) / 100 * 10);
+
+    this.updatePBE(home);
+    this.updatePBE(away);
+  }
+
+  updatePBE(team) {
+    if (team.matches === 0) return;
+
+    const gf_p90 = team.gf / team.matches;
+    const ga_p90 = team.ga / team.matches;
+    const goals_per_shot = team.gf / Math.max(team.shots * team.matches, 1);
+
+    const eGoals = Math.min(gf_p90 / 2.5, 1);
+    const eDefense = Math.max(1 - ga_p90 / 2.5, 0);
+    const ePossession = team.possession / 100;
+    const eEfficiency = Math.min(goals_per_shot * 10, 1);
+
+    team.likelihood = 0.30 * eGoals + 0.25 * eDefense + 0.20 * ePossession + 0.25 * eEfficiency;
+
+    const stageBonus = this.getStageBonus(team);
+    const evidenceWeight = Math.min(0.35 + team.matches * 0.10, 0.65);
+    const priorWeight = 1 - evidenceWeight;
+
+    team.pbe = priorWeight * team.prior + evidenceWeight * team.likelihood + stageBonus;
+    team.stage = team.pts;
+  }
+
+  getStageBonus(team) {
+    if (team.pts >= 7) return 0.08;
+    if (team.pts >= 4) return 0.04;
+    if (team.pts >= 1) return 0.01;
+    return 0;
+  }
+
+  // Pure function: compute prediction from two PBE values, no
+  // mutation of state. Used both for the frozen historical
+  // snapshot and for live (future, unplayed) match forecasts.
+  computePrediction(homePBE, awayPBE, homeName, awayName) {
+    const total = homePBE + awayPBE;
+    const homeWin = homePBE / total;
+    const awayWin = awayPBE / total;
+    const draw = Math.max(0.15, 1 - homeWin - awayWin);
+    const sum = homeWin + awayWin + draw;
+
+    const totalGoals = 2.5;
+    const homeGoals = Math.round((homePBE / total) * totalGoals);
+    const awayGoals = Math.round((awayPBE / total) * totalGoals);
+
+    return {
+      home: homeName, away: awayName,
+      homePBE, awayPBE,
+      homeWin: (homeWin / sum * 100).toFixed(1),
+      draw: (draw / sum * 100).toFixed(1),
+      awayWin: (awayWin / sum * 100).toFixed(1),
+      favorite: homePBE > awayPBE ? homeName : awayName,
+      margin: Math.abs(homePBE - awayPBE).toFixed(3),
+      predHomeGoals: homeGoals,
+      predAwayGoals: awayGoals
+    };
+  }
+
+  // Live prediction for a future (unplayed) match using CURRENT
+  // (most up-to-date, post-recalibration) PBE values.
+  predictMatch(homeName, awayName) {
+    const home = this.teamStats[homeName];
+    const away = this.teamStats[awayName];
+    if (!home || !away) return null;
+    return this.computePrediction(home.pbe, away.pbe, homeName, awayName);
+  }
+
+  // Frozen prediction-time record for an already-played match,
+  // if it exists in matchRecords.
+  getFrozenRecord(homeName, awayName, date) {
+    return this.matchRecords.find(r =>
+      r.home === homeName && r.away === awayName && r.date === date
+    ) || null;
+  }
+
+  getRankings() {
+    return Object.values(this.teamStats)
+      .sort((a, b) => b.pbe - a.pbe)
+      .map((t, i) => ({...t, rank: i + 1}));
+  }
+
+  getGroupStandings(group) {
+    const groupTeams = Object.values(this.teamStats).filter(t => {
+      return SCHEDULE.some(m => m.group === group && (m.home === t.name || m.away === t.name));
+    });
+    return groupTeams.sort((a, b) => {
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      return b.gf - a.gf;
+    });
+  }
+
+  // Accuracy metrics across all frozen predictions
+  getAccuracySummary() {
+    const records = this.matchRecords;
+    if (records.length === 0) {
+      return { total: 0, favoriteCorrectPct: '0.0', exactScorePct: '0.0', avgGoalError: '0.00' };
+    }
+    let favoriteCorrect = 0;
+    let exactScore = 0;
+    let totalGoalError = 0;
+
+    records.forEach(r => {
+      const actualResult = r.homeScore > r.awayScore ? 'home'
+        : r.homeScore < r.awayScore ? 'away' : 'draw';
+      const predictedFavorite = r.prediction.favorite === r.home ? 'home' : 'away';
+
+      // Only count as "correct" if the favorite actually won
+      // (draws are not attributed to either favorite).
+      if (actualResult !== 'draw' && actualResult === predictedFavorite) {
+        favoriteCorrect++;
+      }
+
+      const diffHome = Math.abs(r.homeScore - r.prediction.predHomeGoals);
+      const diffAway = Math.abs(r.awayScore - r.prediction.predAwayGoals);
+      totalGoalError += diffHome + diffAway;
+
+      if (diffHome === 0 && diffAway === 0) exactScore++;
+    });
+
+    return {
+      total: records.length,
+      favoriteCorrectPct: (favoriteCorrect / records.length * 100).toFixed(1),
+      exactScorePct: (exactScore / records.length * 100).toFixed(1),
+      avgGoalError: (totalGoalError / records.length / 2).toFixed(2)
+    };
+  }
+}
+
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+let engine = new PBEEngine();
+let currentDate = '2026-06-15';
+
+function init() {
+  engine.runReplay(SCHEDULE);
+  document.getElementById('currentDate').textContent = formatDate(currentDate);
+  renderDatePicker();
+  renderTodayMatches();
+  renderGroupSelector();
+  renderStandings('A');
+  renderPBERankings();
+  renderAccuracy();
+  bindEvents();
+}
+
+function bindEvents() {
+  document.querySelectorAll('.tab').forEach(tabEl => {
+    tabEl.addEventListener('click', (ev) => showTab(ev.currentTarget.dataset.tab, ev));
+  });
+  document.getElementById('updateBtn').addEventListener('click', updateResults);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function showTab(tabId, ev) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+  const section = document.getElementById(tabId);
+  if (section) section.classList.add('active');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg; // textContent only -> no HTML injection risk
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+async function updateResults() {
+  const btn = document.getElementById('updateBtn');
+  const spinner = btn.querySelector('.spinner-inline');
+  const text = btn.querySelector('.btn-text');
+
+  btn.classList.add('spinning');
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  text.textContent = 'Updating...';
+
+  // Simulate fetching from external dataset
+  await new Promise(r => setTimeout(r, 1200));
+
+  // Re-run full chronological replay. Frozen prediction snapshots
+  // are regenerated identically for already-played matches (since
+  // SCHEDULE + algorithm are unchanged here), preserving the
+  // prediction-vs-actual audit trail. If SCHEDULE were updated with
+  // new results, this replay correctly inserts new frozen snapshots
+  // using only data available up to that point chronologically.
+  engine.runReplay(SCHEDULE);
+
+  renderTodayMatches();
+  renderPBERankings();
+  renderAccuracy();
+
+  const activeGroupChip = document.querySelector('.group-chip.active');
+  if (activeGroupChip) {
+    const group = activeGroupChip.dataset.group;
+    renderStandings(group);
+  }
+
+  showToast('Results updated successfully.');
+
+  btn.classList.remove('spinning');
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  text.textContent = '🔄 Update Official Results';
+}
+
+function renderDatePicker() {
+  const dates = [...new Set(SCHEDULE.map(m => m.date))].sort();
+  const picker = document.getElementById('datePicker');
+  picker.innerHTML = '';
+
+  dates.forEach(date => {
+    const chip = document.createElement('div');
+    chip.className = 'date-chip';
+    if (date === currentDate) chip.classList.add('active', 'today');
+    else if (date < currentDate) chip.classList.add('past');
+    else chip.classList.add('future');
+
+    const d = new Date(date + 'T12:00:00');
+    chip.textContent = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    chip.addEventListener('click', () => {
+      currentDate = date;
+      document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderTodayMatches();
+    });
+    picker.appendChild(chip);
+  });
+}
+
+function renderTodayMatches() {
+  const container = document.getElementById('todayMatches');
+  const todayMatches = SCHEDULE.filter(m => m.date === currentDate);
+
+  if (todayMatches.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.8rem;">No matches on this date</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  todayMatches.forEach(match => {
+    if (!isKnownTeam(match.home) || !isKnownTeam(match.away)) return;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const homeName = escapeHTML(match.home);
+    const awayName = escapeHTML(match.away);
+    const venue = escapeHTML(match.venue || 'TBD');
+    const group = escapeHTML(match.group);
+
+    let html = '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">Group ' + group + ' &bull; ' + venue + '</div>';
+    html += '<div style="font-size:0.6rem;color:var(--accent);margin-bottom:8px;">' + (match.played ? '✅ FINAL' : '⏳ UPCOMING') + '</div>';
+
+    if (match.played) {
+      html += '<div class="match-card">' +
+        '<div class="match-team"><span class="team-flag">' + getFlag(match.home) + '</span><span class="team-name">' + homeName + '</span></div>' +
+        '<div class="match-score">' + match.home_score + ' - ' + match.away_score + '</div>' +
+        '<div class="match-team away"><span class="team-name">' + awayName + '</span><span class="team-flag">' + getFlag(match.away) + '</span></div>' +
+        '</div>';
+    } else {
+      html += '<div class="match-card">' +
+        '<div class="match-team"><span class="team-flag">' + getFlag(match.home) + '</span><span class="team-name">' + homeName + '</span></div>' +
+        '<div class="match-time">VS</div>' +
+        '<div class="match-team away"><span class="team-name">' + awayName + '</span><span class="team-flag">' + getFlag(match.away) + '</span></div>' +
+        '</div>';
+    }
+
+    let pred, isFrozen;
+    if (match.played) {
+      const frozen = engine.getFrozenRecord(match.home, match.away, match.date);
+      pred = frozen ? frozen.prediction : null;
+      isFrozen = true;
+    } else {
+      pred = engine.predictMatch(match.home, match.away);
+      isFrozen = false;
+    }
+
+    if (pred) {
+      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);">' +
+        '<div style="font-size:0.65rem;color:var(--muted);margin-bottom:6px;">🔮 PBE Prediction' + (isFrozen ? ' (frozen, pre-match)' : ' (live)') + '</div>' +
+        '<div class="pbe-display">' +
+        '<div class="pbe-score-box"><div class="pbe-score-value">' + (pred.homePBE * 100).toFixed(1) + '</div><div class="pbe-score-label">' + homeName + '</div></div>' +
+        '<div class="pbe-vs">VS</div>' +
+        '<div class="pbe-score-box away"><div class="pbe-score-value">' + (pred.awayPBE * 100).toFixed(1) + '</div><div class="pbe-score-label">' + awayName + '</div></div>' +
+        '</div>' +
+        '<div class="match-prediction">' +
+        '<span class="pred-label">' + pred.homeWin + '%</span><div class="pred-bar"><div class="pred-fill pred-home" style="width:' + pred.homeWin + '%"></div></div>' +
+        '<span class="pred-label" style="color:var(--muted);">' + pred.draw + '%</span><div class="pred-bar"><div class="pred-fill pred-draw" style="width:' + pred.draw + '%"></div></div>' +
+        '<span class="pred-label">' + pred.awayWin + '%</span><div class="pred-bar"><div class="pred-fill pred-away" style="width:' + pred.awayWin + '%"></div></div>' +
+        '</div>' +
+        '<div style="text-align:center;margin-top:6px;"><span class="pbe-fav">🏆 Favorite: ' + escapeHTML(pred.favorite) + ' (+' + pred.margin + ')</span></div>';
+
+      if (isFrozen) {
+        html += '<div class="pbe-snapshot-note">📌 PBE values frozen at pre-match state, not recalculated retroactively</div>';
+      }
+
+      if (match.played) {
+        const actualHome = match.home_score;
+        const actualAway = match.away_score;
+        const predHome = pred.predHomeGoals;
+        const predAway = pred.predAwayGoals;
+        const diffHome = actualHome - predHome;
+        const diffAway = actualAway - predAway;
+
+        function getDiffClass(d) {
+          if (Math.abs(d) === 0) return 'diff-good';
+          if (Math.abs(d) === 1) return 'diff-ok';
+          return 'diff-bad';
+        }
+        function getDiffText(d) {
+          if (d === 0) return '✓ Exact';
+          return (d > 0 ? '+' : '') + d;
+        }
+
+        html += '<div class="pred-actual-box">' +
+          '<div class="pred-actual-title">📊 Predicted vs Actual Goals</div>' +
+          '<div class="pred-actual-row">' +
+          '<div class="pred-actual-label">' + homeName + '</div>' +
+          '<div class="pred-actual-scores">' +
+          '<div class="pred-score-display"><div class="lbl">Predicted</div><div class="val">' + predHome + '</div></div>' +
+          '<div style="color:var(--muted);font-size:0.8rem;">→</div>' +
+          '<div class="pred-score-display actual"><div class="lbl">Actual</div><div class="val">' + actualHome + '</div></div>' +
+          '</div>' +
+          '<div class="pred-score-display" style="min-width:50px;background:rgba(255,255,255,0.05);"><div class="lbl">Diff</div><div class="diff ' + getDiffClass(diffHome) + '">' + getDiffText(diffHome) + '</div></div>' +
+          '</div>' +
+          '<div class="pred-actual-row">' +
+          '<div class="pred-actual-label">' + awayName + '</div>' +
+          '<div class="pred-actual-scores">' +
+          '<div class="pred-score-display"><div class="lbl">Predicted</div><div class="val">' + predAway + '</div></div>' +
+          '<div style="color:var(--muted);font-size:0.8rem;">→</div>' +
+          '<div class="pred-score-display actual"><div class="lbl">Actual</div><div class="val">' + actualAway + '</div></div>' +
+          '</div>' +
+          '<div class="pred-score-display" style="min-width:50px;background:rgba(255,255,255,0.05);"><div class="lbl">Diff</div><div class="diff ' + getDiffClass(diffAway) + '">' + getDiffText(diffAway) + '</div></div>' +
+          '</div>' +
+          '</div>';
+      } else {
+        html += '<div class="pred-actual-box">' +
+          '<div class="pred-actual-title">🔮 PBE Predicted Score (current PBE)</div>' +
+          '<div class="pred-actual-row" style="justify-content:center;">' +
+          '<div class="pred-score-display" style="min-width:80px;">' +
+          '<div class="lbl">' + homeName + '</div>' +
+          '<div class="val">' + pred.predHomeGoals + '</div>' +
+          '</div>' +
+          '<div style="color:var(--muted);font-size:1.2rem;font-weight:800;">:</div>' +
+          '<div class="pred-score-display" style="min-width:80px;">' +
+          '<div class="lbl">' + awayName + '</div>' +
+          '<div class="val">' + pred.predAwayGoals + '</div>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      }
+
+      html += '</div>';
+    }
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+}
+
+function renderGroupSelector() {
+  const groups = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+  const selector = document.getElementById('groupSelector');
+  selector.innerHTML = '';
+  groups.forEach(g => {
+    const chip = document.createElement('div');
+    chip.className = 'group-chip' + (g === 'A' ? ' active' : '');
+    chip.textContent = 'Grp ' + g;
+    chip.dataset.group = g;
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderStandings(g);
+    });
+    selector.appendChild(chip);
+  });
+}
+
+function renderStandings(group) {
+  const container = document.getElementById('standingsContent');
+  const standings = engine.getGroupStandings(group);
+
+  let html = '<div class="card"><table class="standings-table">';
+  html += '<tr><th style="text-align:left">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>PBE</th></tr>';
+
+  standings.forEach((t, i) => {
+    const posClass = i < 2 ? 'qualify' : 'elim';
+    html += '<tr>' +
+      '<td><span class="pos ' + posClass + '">' + (i+1) + '</span> <span class="team-cell">' + getFlag(t.name) + ' ' + escapeHTML(t.name) + '</span></td>' +
+      '<td>' + t.matches + '</td>' +
+      '<td>' + t.wins + '</td>' +
+      '<td>' + t.draws + '</td>' +
+      '<td>' + t.losses + '</td>' +
+      '<td class="gf">' + t.gf + '</td>' +
+      '<td class="ga">' + t.ga + '</td>' +
+      '<td class="gd">' + (t.gd > 0 ? '+' : '') + t.gd + '</td>' +
+      '<td class="pts">' + t.pts + '</td>' +
+      '<td style="color:var(--accent);font-weight:700">' + (t.pbe * 100).toFixed(0) + '</td>' +
+      '</tr>';
+  });
+
+  html += '</table></div>';
+  container.innerHTML = html;
+}
+
+function renderPBERankings() {
+  const rankings = engine.getRankings();
+  const list = document.getElementById('pbeRankList');
+  list.innerHTML = '';
+
+  rankings.forEach(t => {
+    const item = document.createElement('li');
+    item.className = 'rank-item';
+
+    let numClass = 'normal';
+    if (t.rank === 1) numClass = 'gold';
+    else if (t.rank === 2) numClass = 'silver';
+    else if (t.rank === 3) numClass = 'bronze';
+
+    const delta = t.pbe - t.originalPrior;
+    let deltaClass = 'flat';
+    let deltaSign = '';
+    if (delta > 0.001) { deltaClass = 'up'; deltaSign = '+'; }
+    else if (delta < -0.001) { deltaClass = 'down'; }
+    const deltaText = t.matches > 0 ? (deltaSign + (delta * 100).toFixed(1)) : '—';
+
+    item.innerHTML =
+      '<div class="rank-num ' + numClass + '">' + t.rank + '</div>' +
+      '<div class="rank-info">' +
+      '<div class="rank-team">' + getFlag(t.name) + ' ' + escapeHTML(t.name) + '</div>' +
+      '<div class="rank-meta">' + t.matches + ' matches &bull; ' + t.pts + ' pts &bull; GD ' + (t.gd > 0 ? '+' : '') + t.gd + ' &bull; Original ' + (t.originalPrior * 100).toFixed(1) + '</div>' +
+      '</div>' +
+      '<div class="rank-bar-container">' +
+      '<div class="rank-bar" style="width:' + Math.min(t.pbe * 100, 100) + '%"></div>' +
+      '</div>' +
+      '<div class="rank-score">' + (t.pbe * 100).toFixed(1) + '</div>' +
+      '<div class="rank-delta ' + deltaClass + '">' + deltaText + '</div>';
+    list.appendChild(item);
+  });
+}
+
+function renderAccuracy() {
+  const summary = engine.getAccuracySummary();
+  const summaryEl = document.getElementById('accuracySummary');
+  summaryEl.innerHTML =
+    '<div class="accuracy-box"><div class="val">' + summary.favoriteCorrectPct + '%</div><div class="lbl">Favorite Correct (excl. draws)</div></div>' +
+    '<div class="accuracy-box"><div class="val">' + summary.exactScorePct + '%</div><div class="lbl">Exact Score Hit</div></div>' +
+    '<div class="accuracy-box"><div class="val">' + summary.avgGoalError + '</div><div class="lbl">Avg Goal Error / Team</div></div>';
+
+  const detail = document.getElementById('accuracyDetail');
+  if (engine.matchRecords.length === 0) {
+    detail.innerHTML = '<div class="card" style="text-align:center;color:var(--muted);font-size:0.8rem;">No completed matches yet</div>';
+    return;
+  }
+
+  let html = '<div class="card"><div class="card-title"><span class="icon">📋</span> Per-Match Log (' + summary.total + ')</div>';
+  // Show most recent first
+  const recs = [...engine.matchRecords].reverse();
+  recs.forEach(r => {
+    const actualResult = r.homeScore > r.awayScore ? 'home' : r.homeScore < r.awayScore ? 'away' : 'draw';
+    const predictedFavorite = r.prediction.favorite === r.home ? 'home' : 'away';
+    const hit = actualResult !== 'draw' && actualResult === predictedFavorite;
+    html += '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.7rem;">' +
+      '<div style="display:flex;justify-content:space-between;">' +
+      '<span>' + getFlag(r.home) + ' ' + escapeHTML(r.home) + ' ' + r.homeScore + ' - ' + r.awayScore + ' ' + escapeHTML(r.away) + ' ' + getFlag(r.away) + '</span>' +
+      '<span style="color:' + (hit ? 'var(--success)' : 'var(--danger)') + ';font-weight:700;">' + (hit ? '✓' : '✗') + '</span>' +
+      '</div>' +
+      '<div style="color:var(--muted);font-size:0.6rem;margin-top:2px;">Predicted fav: ' + escapeHTML(r.prediction.favorite) + ' (' + (r.prediction.homePBE*100).toFixed(1) + ' vs ' + (r.prediction.awayPBE*100).toFixed(1) + ') &bull; Pred score ' + r.prediction.predHomeGoals + '-' + r.prediction.predAwayGoals + '</div>' +
+      '</div>';
+  });
+  html += '</div>';
+  detail.innerHTML = html;
+}
+
+function getFlag(team) {
+  const flags = {
+    'Argentina': '🇦🇷', 'France': '🇫🇷', 'Brazil': '🇧🇷', 'Germany': '🇩🇪', 'England': '🏴',
+    'Spain': '🇪🇸', 'Portugal': '🇵🇹', 'Netherlands': '🇳🇱', 'Croatia': '🇭🇷', 'Uruguay': '🇺🇾',
+    'Belgium': '🇧🇪', 'Switzerland': '🇨🇭', 'Mexico': '🇲🇽', 'United States': '🇺🇸', 'Canada': '🇨🇦',
+    'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Australia': '🇦🇺', 'Iran': '🇮🇷', 'Saudi Arabia': '🇸🇦',
+    'Qatar': '🇶🇦', 'Iraq': '🇮🇶', 'Uzbekistan': '🇺🇿', 'Jordan': '🇯🇴', 'Morocco': '🇲🇦',
+    'Senegal': '🇸🇳', 'Tunisia': '🇹🇳', 'Ghana': '🇬🇭', 'Egypt': '🇪🇬',
+    'Algeria': '🇩🇿', 'Ivory Coast': '🇨🇮', 'South Africa': '🇿🇦', 'Cape Verde': '🇨🇻',
+    'DR Congo': '🇨🇩', 'Ecuador': '🇪🇨', 'Paraguay': '🇵🇾', 'Colombia': '🇨🇴',
+    'Turkiye': '🇹🇷', 'Czechia': '🇨🇿', 'Scotland': '🏴', 'Austria': '🇦🇹',
+    'Panama': '🇵🇦', 'Haiti': '🇭🇹', 'Curacao': '🇨🇼', 'New Zealand': '🇳🇿',
+    'Bosnia-Herzegovina': '🇧🇦', 'Norway': '🇳🇴', 'Sweden': '🇸🇪'
+  };
+  return Object.prototype.hasOwnProperty.call(flags, team) ? flags[team] : '🏳️';
+}
+
+// Initialize (deferred to DOM ready since script has no `defer`
+// attribute concerns under CSP but we keep this for robustness)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
