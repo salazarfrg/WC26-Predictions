@@ -1,2 +1,2 @@
 # PBE
-An algorithm applied to WC 2026
+A set of algorithms applied to WC 2026
