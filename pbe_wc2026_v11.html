@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0e1a">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src https://raw.githubusercontent.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
+<title>WC 2026 · Multi-Model Prediction Dashboard · v11</title>
+<style>
+:root {
+  --bg:#0a0e1a; --surface:#111827; --surface2:#1a2236; --border:rgba(255,255,255,0.07);
+  --accent:#00d4ff; --accent2:#ff6b35; --gold:#fbbf24; --silver:#94a3b8; --bronze:#b45309;
+  --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --muted:#64748b;
+  --text:#e2e8f0; --text2:#94a3b8;
+  --pbe:#00d4ff; --elo:#a78bfa; --poi:#34d399; --mkt:#fb923c; --ens:#fbbf24; --c5s:#f472b6;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.container{max-width:520px;margin:0 auto;padding:10px}
+
+/* HEADER */
+.header{text-align:center;padding:14px 8px 10px;background:linear-gradient(135deg,#0f2027 0%,#1a3a4a 50%,#0f2027 100%);border-radius:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(0,212,255,0.02) 30px,rgba(0,212,255,0.02) 31px)}
+.header h1{font-size:1.3rem;font-weight:900;letter-spacing:-1px;position:relative;z-index:1}
+.header h1 span{color:var(--accent)}
+.header .sub{font-size:0.7rem;color:var(--muted);margin-top:3px;position:relative;z-index:1;letter-spacing:1px;text-transform:uppercase}
+.badges{display:flex;justify-content:center;gap:6px;margin-top:8px;flex-wrap:wrap;position:relative;z-index:1}
+.badge{padding:3px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;border:1px solid}
+.badge.v{background:rgba(16,185,129,0.1);color:var(--success);border-color:rgba(16,185,129,0.3)}
+.badge.d{background:rgba(0,212,255,0.1);color:var(--accent);border-color:rgba(0,212,255,0.3)}
+.badge.api{background:rgba(251,191,36,0.1);color:var(--gold);border-color:rgba(251,191,36,0.3)}
+
+/* LEGEND PILLS */
+.algo-legend{display:flex;gap:5px;flex-wrap:wrap;padding:8px 10px;background:var(--surface);border-radius:10px;margin-bottom:8px;border:1px solid var(--border)}
+.algo-pill{display:flex;align-items:center;gap:5px;font-size:0.65rem;font-weight:700}
+.algo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* UPDATE BUTTON */
+.update-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--accent),#007aaa);color:#000;font-weight:800;font-size:0.82rem;cursor:pointer;margin-bottom:8px;transition:all 0.3s;position:relative;overflow:hidden}
+.update-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,212,255,0.35)}
+.update-btn:active{transform:scale(0.98)}
+.update-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.spinner-inline{width:15px;height:15px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;display:none}
+.update-btn.busy .spinner-inline{display:inline-block;animation:spin 0.7s linear infinite}
+.api-status{font-size:0.6rem;text-align:center;padding:4px 0 6px;color:var(--muted)}
+.api-status.ok{color:var(--success)}
+.api-status.err{color:var(--danger)}
+.api-status.loading{color:var(--warning)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:8px;padding:3px;background:var(--surface);border-radius:10px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:70px;text-align:center;padding:8px 5px;border-radius:8px;font-size:0.68rem;font-weight:700;cursor:pointer;transition:all 0.2s;background:transparent;color:var(--muted);border:none;white-space:nowrap}
+.tab.active{background:var(--accent);color:#000}
+
+/* DATE PICKER */
+.date-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 8px;margin-bottom:2px}
+.date-row::-webkit-scrollbar{display:none}
+.dchip{padding:6px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:0.68rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all 0.2s;position:relative}
+.dchip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.dchip.past{border-left:3px solid var(--success)}
+.dchip.future{border-left:3px solid var(--muted);opacity:0.7}
+.dchip.today-mark{border-left:3px solid var(--accent)}
+
+/* SECTIONS */
+.section{display:none}
+.section.active{display:block;animation:fadeIn 0.25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* MATCH CARD */
+.match-card{background:var(--surface);border-radius:12px;margin-bottom:8px;overflow:hidden;border:1px solid var(--border)}
+.match-header{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--surface2);font-size:0.6rem;color:var(--muted);border-bottom:1px solid var(--border)}
+.match-header .grp{font-weight:700;color:var(--accent)}
+.match-header .status-final{color:var(--success);font-weight:700}
+.match-header .status-upcoming{color:var(--muted)}
+.match-header .status-hidden{color:var(--warning)}
+
+.teams-row{display:flex;align-items:center;padding:10px 12px;gap:6px}
+.team-side{flex:1;display:flex;align-items:center;gap:7px}
+.team-side.away{flex-direction:row-reverse;text-align:right}
+.flag{font-size:1.3rem;line-height:1}
+.tname{font-size:0.82rem;font-weight:700;line-height:1.2}
+.score-box{min-width:56px;text-align:center;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(0,0,0,0.2);flex-shrink:0}
+.score-box .sc{font-size:1.2rem;font-weight:900;color:var(--accent);letter-spacing:1px}
+.score-box .sc.hidden{color:var(--muted);letter-spacing:3px;font-size:0.9rem}
+.score-box .sc-lbl{font-size:0.52rem;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* PREDICTION GRID */
+.pred-grid{border-top:1px solid var(--border)}
+.pred-section-title{font-size:0.58rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);padding:7px 12px 4px;background:rgba(0,0,0,0.15)}
+
+.algo-row{display:grid;grid-template-columns:80px 1fr;gap:0;border-bottom:1px solid rgba(255,255,255,0.04);align-items:stretch}
+.algo-row:last-child{border-bottom:none}
+.algo-label{padding:7px 10px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.1)}
+.algo-label .alname{font-size:0.65rem;font-weight:800}
+.algo-label .alsub{font-size:0.52rem;color:var(--muted);margin-top:1px}
+.algo-label.is-ens{background:rgba(251,191,36,0.05)}
+
+.algo-data{padding:7px 10px;display:flex;flex-direction:column;gap:5px}
+.score-pred-row{display:flex;align-items:center;gap:8px}
+.pred-score-pill{display:flex;gap:3px;align-items:center}
+.pred-score-num{font-size:0.82rem;font-weight:800;min-width:14px;text-align:center}
+.pred-score-sep{font-size:0.7rem;color:var(--muted)}
+.pred-vs-label{font-size:0.58rem;color:var(--muted);margin-left:4px}
+
+.prob-row{display:flex;gap:3px;align-items:center}
+.prob-bar-wrap{flex:1;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;display:flex;gap:1px}
+.pb-h{height:100%;border-radius:2px 0 0 2px;transition:width 0.4s ease}
+.pb-d{height:100%;background:var(--muted)}
+.pb-a{height:100%;border-radius:0 2px 2px 0;transition:width 0.4s ease}
+.prob-nums{display:flex;gap:8px;font-size:0.6rem}
+.pn{min-width:30px;text-align:center}
+.pn.home{color:var(--accent)}
+.pn.draw{color:var(--muted)}
+.pn.away{color:var(--accent2)}
+.fav-tag{font-size:0.55rem;padding:2px 6px;border-radius:4px;font-weight:700;background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3)}
+
+/* actual vs pred comparison */
+.vs-compare{display:flex;gap:6px;align-items:center;font-size:0.68rem}
+.compare-cell{text-align:center;padding:3px 8px;border-radius:5px;min-width:44px}
+.compare-cell.pred{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2)}
+.compare-cell.actual{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2)}
+.compare-cell .cv{font-size:0.82rem;font-weight:800}
+.compare-cell.pred .cv{color:var(--accent)}
+.compare-cell.actual .cv{color:var(--success)}
+.compare-cell .cl{font-size:0.5rem;color:var(--muted)}
+.diff-chip{font-size:0.6rem;font-weight:700;padding:2px 5px;border-radius:4px}
+.diff-exact{color:var(--success);background:rgba(16,185,129,0.12)}
+.diff-close{color:var(--warning);background:rgba(245,158,11,0.12)}
+.diff-off{color:var(--danger);background:rgba(239,68,68,0.12)}
+
+/* GROUP STANDINGS */
+.grp-selector{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding:2px 0 8px}
+.grp-selector::-webkit-scrollbar{display:none}
+.gchip{padding:5px 11px;border-radius:7px;background:var(--surface);border:1px solid var(--border);font-size:0.68rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.gchip.active{background:var(--accent);color:#000}
+.standings-tbl{width:100%;border-collapse:collapse;font-size:0.7rem}
+.standings-tbl th{padding:7px 5px;text-align:center;color:var(--muted);font-size:0.6rem;font-weight:600;border-bottom:1px solid var(--border)}
+.standings-tbl th:first-child{text-align:left}
+.standings-tbl td{padding:6px 5px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.03)}
+.standings-tbl td:first-child{text-align:left}
+.pos-q{color:var(--success);font-weight:800}
+.pos-e{color:var(--muted)}
+.pts-col{font-weight:800;color:var(--accent)}
+.ens-col{font-weight:700;color:var(--gold)}
+
+/* RANKINGS */
+.rank-item{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.rank-item:last-child{border-bottom:none}
+.rank-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;flex-shrink:0}
+.rn-gold{background:var(--gold);color:#000}
+.rn-silver{background:var(--silver);color:#000}
+.rn-bronze{background:var(--bronze);color:#fff}
+.rn-norm{background:rgba(255,255,255,0.08);color:var(--muted)}
+.rank-info{flex:1}
+.rank-team{font-size:0.8rem;font-weight:700}
+.rank-sub{font-size:0.58rem;color:var(--muted);margin-top:2px}
+.rank-bars{display:flex;flex-direction:column;gap:2px;width:70px}
+.mini-bar-row{display:flex;align-items:center;gap:3px}
+.mini-bar-bg{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:2px}
+.mini-bar-val{font-size:0.52rem;color:var(--muted);min-width:22px;text-align:right}
+.rank-ens{font-size:0.85rem;font-weight:800;color:var(--gold);min-width:36px;text-align:right}
+
+/* ACCURACY */
+.acc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.acc-box{background:var(--surface2);border-radius:8px;padding:9px 6px;text-align:center;border:1px solid var(--border)}
+.acc-box .av{font-size:1.05rem;font-weight:800;color:var(--accent)}
+.acc-box .al{font-size:0.55rem;color:var(--muted);margin-top:2px}
+.acc-algo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:8px 0}
+.acc-algo-box{background:var(--surface2);border-radius:8px;padding:8px 10px;border:1px solid var(--border)}
+.acc-algo-box .aan{font-size:0.65rem;font-weight:800;margin-bottom:4px}
+.acc-algo-box .aav{font-size:0.95rem;font-weight:800}
+.acc-algo-box .aal{font-size:0.55rem;color:var(--muted)}
+
+/* FORMULA */
+.formula-section{background:var(--surface);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+.formula-section h3{font-size:0.72rem;font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.formula-eq{background:rgba(0,0,0,0.3);border-radius:7px;padding:8px 10px;font-size:0.72rem;font-family:'Courier New',monospace;color:var(--accent);margin:6px 0;line-height:1.6}
+.formula-section p{font-size:0.68rem;line-height:1.6;color:var(--text2);margin-top:4px}
+.formula-section .tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:0.58rem;font-weight:700;margin-right:4px}
+
+/* GENERAL */
+.card{background:var(--surface);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+.card-title{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.empty{text-align:center;padding:24px;color:var(--muted);font-size:0.78rem}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface);color:var(--text);padding:10px 18px;border-radius:9px;border:1px solid rgba(0,212,255,0.3);font-size:0.75rem;z-index:1000;transition:transform 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.6);max-width:88%;word-break:break-word;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+/* ── BRACKET ─────────────────────────────────────────────── */
+.bracket-round-selector{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding:2px 0 8px}
+.bracket-round-selector::-webkit-scrollbar{display:none}
+.rchip{padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:0.68rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.rchip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+.bracket-notice{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:0.68rem;color:var(--gold);line-height:1.5}
+.bracket-notice strong{display:block;margin-bottom:3px}
+
+.bracket-match{background:var(--surface);border-radius:11px;margin-bottom:8px;border:1px solid var(--border);overflow:hidden}
+.bm-header{display:flex;justify-content:space-between;align-items:center;padding:6px 11px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:0.6rem;color:var(--muted)}
+.bm-header .bm-slot{font-weight:800;color:var(--accent);font-size:0.68rem}
+.bm-header .bm-date{color:var(--muted)}
+.bm-teams{display:flex;flex-direction:column;gap:1px;padding:8px 11px}
+.bm-team-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:7px;background:rgba(0,0,0,0.15)}
+.bm-team-row.winner{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)}
+.bm-team-row.tbd{background:rgba(255,255,255,0.03)}
+.bm-flag{font-size:1.1rem;line-height:1;flex-shrink:0}
+.bm-name{flex:1;font-size:0.8rem;font-weight:700}
+.bm-name.tbd-name{color:var(--muted);font-style:italic;font-weight:400}
+.bm-score{font-size:0.9rem;font-weight:800;color:var(--accent);min-width:20px;text-align:center}
+.bm-score.winner-score{color:var(--success)}
+.bm-vs{text-align:center;font-size:0.6rem;color:var(--muted);padding:1px 0}
+
+.bm-preds{border-top:1px solid var(--border);padding:8px 11px}
+.bm-preds-title{font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.bm-pred-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.bm-pred-row:last-child{margin-bottom:0}
+.bm-algo-tag{font-size:0.6rem;font-weight:800;min-width:28px}
+.bm-prob-bar{flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;display:flex}
+.bm-ph{height:100%;border-radius:2px 0 0 2px}
+.bm-pd{height:100%;background:var(--muted)}
+.bm-pa{height:100%;border-radius:0 2px 2px 0;background:var(--accent2)}
+.bm-probs{font-size:0.58rem;display:flex;gap:5px;color:var(--muted)}
+.bm-fav-chip{font-size:0.55rem;padding:1px 5px;border-radius:3px;font-weight:700;background:rgba(251,191,36,0.15);color:var(--gold);border:1px solid rgba(251,191,36,0.3);white-space:nowrap}
+
+.qual-section{margin-bottom:12px}
+.qual-section-title{font-size:0.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;padding:6px 0 8px}
+.qual-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.qual-card{background:var(--surface);border-radius:9px;padding:8px 10px;border:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.qual-card.confirmed{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05)}
+.qual-card.projected{border-color:rgba(251,191,36,0.2)}
+.qual-card.eliminated{opacity:0.35}
+.qual-slot{font-size:0.58rem;font-weight:800;color:var(--muted);min-width:22px}
+.qual-team{flex:1}
+.qual-tname{font-size:0.75rem;font-weight:700}
+.qual-tpts{font-size:0.58rem;color:var(--muted);margin-top:1px}
+.qual-ens{font-size:0.7rem;font-weight:800;color:var(--gold)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-confirmed{background:var(--success)}
+.dot-projected{background:var(--warning)}
+.dot-tbd{background:var(--muted)}
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.app-footer{max-width:520px;margin:18px auto 0;padding:0 10px 24px;font-size:0.65rem;color:var(--text2);line-height:1.6}
+.footer-dev{background:var(--surface);border-radius:11px;padding:12px 14px;border:1px solid var(--border);margin-bottom:10px}
+.footer-dev-title{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:3px}
+.footer-dev-name{font-size:0.9rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.footer-dev-desc{font-size:0.63rem;color:var(--text2)}
+.footer-divider{height:1px;background:var(--border);margin:10px 0}
+.footer-credits{margin-bottom:6px}
+.footer-credits-title{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px}
+.footer-credits-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.footer-credits-list li{padding:7px 10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);font-size:0.62rem}
+.footer-credits-list li em{color:var(--text2);font-style:italic}
+.fc-label{display:block;font-weight:800;color:var(--text);margin-bottom:2px;font-size:0.63rem}
+.footer-credits-list a{color:var(--accent);text-decoration:none}
+.footer-credits-list a:hover{text-decoration:underline}
+.footer-legal{background:var(--surface);border-radius:11px;padding:12px 14px;border:1px solid var(--border)}
+.footer-copy{font-weight:700;color:var(--text);margin-bottom:6px;font-size:0.65rem}
+.footer-disclaimer{color:var(--muted);font-size:0.6rem;margin-bottom:6px}
+.footer-version{font-size:0.58rem;color:var(--muted);text-align:right;opacity:0.7}
+
+/* ── ALGO FILTER BAR ─────────────────────────────────────── */
+.algo-filter-bar{
+  display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;
+  background:var(--surface);border-radius:11px;margin-bottom:8px;
+  border:1px solid var(--border);align-items:center
+}
+.filter-label{
+  font-size:0.58rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.6px;color:var(--muted);white-space:nowrap;margin-right:2px
+}
+.algo-toggle{
+  display:flex;align-items:center;gap:5px;padding:5px 10px;
+  border-radius:20px;border:1px solid transparent;cursor:pointer;
+  font-size:0.68rem;font-weight:700;transition:all 0.2s;
+  background:rgba(255,255,255,0.04);color:var(--muted);user-select:none
+}
+.algo-toggle.active{
+  background:rgba(255,255,255,0.09);
+  border-color:currentColor
+}
+.algo-toggle:not(.active){opacity:0.38}
+.at-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.at-check{font-size:0.65rem;opacity:0.9}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>⚽ WC 2026 <span>Predictor</span></h1>
+    <div class="sub">Multi-Model Ensemble Dashboard</div>
+    <div class="badges">
+      <span class="badge v">V11 · PR1</span>
+      <span class="badge d">Dynamic · Sequential Replay</span>
+      <span class="badge api">Live API: openfootball</span>
+      <span class="badge" style="background:rgba(167,139,250,0.1);color:#a78bfa;border-color:rgba(167,139,250,0.3)">💧 Hydration-calibrated</span>
+      <span class="badge" style="background:rgba(251,191,36,0.1);color:var(--gold);border-color:rgba(251,191,36,0.3)">🏛️ 5 Capitals Score</span>
+      <span class="badge" style="background:rgba(52,211,153,0.1);color:var(--poi);border-color:rgba(52,211,153,0.3)">💰 EQV-enhanced PBE</span>
+    </div>
+  </div>
+
+  <div class="algo-legend">
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--pbe)"></div><span style="color:var(--pbe)">PBE</span></div>
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--elo)"></div><span style="color:var(--elo)">ELO</span></div>
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--poi)"></div><span style="color:var(--poi)">POI</span></div>
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--mkt)"></div><span style="color:var(--mkt)">MKT</span></div>
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--c5s)"></div><span style="color:var(--c5s)">C5S</span></div>
+    <div class="algo-pill"><div class="algo-dot" style="background:var(--ens)"></div><span style="color:var(--ens)">ENS ★</span></div>
+    <span style="font-size:0.58rem;color:var(--muted);margin-left:auto">Pred = state before each match</span>
+  </div>
+
+  <!-- Algorithm filter — PBE and C5S active by default -->
+  <div class="algo-filter-bar" id="algoFilterBar">
+    <span class="filter-label">Show:</span>
+    <div class="algo-toggle active" data-algo="pbe"  style="color:var(--pbe)">
+      <div class="at-dot" style="background:var(--pbe)"></div>PBE<span class="at-check">✓</span>
+    </div>
+    <div class="algo-toggle" data-algo="elo" style="color:var(--elo)">
+      <div class="at-dot" style="background:var(--elo)"></div>ELO<span class="at-check">✓</span>
+    </div>
+    <div class="algo-toggle" data-algo="poi" style="color:var(--poi)">
+      <div class="at-dot" style="background:var(--poi)"></div>POI<span class="at-check">✓</span>
+    </div>
+    <div class="algo-toggle" data-algo="mkt" style="color:var(--mkt)">
+      <div class="at-dot" style="background:var(--mkt)"></div>MKT<span class="at-check">✓</span>
+    </div>
+    <div class="algo-toggle active" data-algo="c5s" style="color:var(--c5s)">
+      <div class="at-dot" style="background:var(--c5s)"></div>C5S<span class="at-check">✓</span>
+    </div>
+    <div class="algo-toggle" data-algo="ens" style="color:var(--ens)">
+      <div class="at-dot" style="background:var(--ens)"></div>ENS ★<span class="at-check">✓</span>
+    </div>
+  </div>
+
+  <button class="update-btn" id="updateBtn" type="button">
+    <div class="spinner-inline" id="btnSpinner"></div>
+    <span id="btnText">🔄 Fetch Official Results</span>
+  </button>
+  <div class="api-status" id="apiStatus">Results hidden — click to fetch from openfootball API</div>
+
+  <div class="tabs" id="mainTabs">
+    <button class="tab active" type="button" data-tab="matches">📅 Matches</button>
+    <button class="tab" type="button" data-tab="bracket">🗂️ Bracket</button>
+    <button class="tab" type="button" data-tab="standings">📊 Groups</button>
+    <button class="tab" type="button" data-tab="ranking">🏆 Ranking</button>
+    <button class="tab" type="button" data-tab="accuracy">🎯 Accuracy</button>
+    <button class="tab" type="button" data-tab="formula">📐 Models</button>
+  </div>
+
+  <div id="matches" class="section active">
+    <div class="date-row" id="dateRow"></div>
+    <div id="matchList"></div>
+  </div>
+
+  <div id="bracket" class="section">
+    <div id="bracketContent"></div>
+  </div>
+
+  <div id="standings" class="section">
+    <div class="grp-selector" id="grpSelector"></div>
+    <div id="standingsContent"></div>
+  </div>
+
+  <div id="ranking" class="section">
+    <div class="card">
+      <div class="card-title">🏆 Ensemble Rankings (all teams)</div>
+      <div style="font-size:0.62rem;color:var(--muted);margin-bottom:10px">Sorted by ENS score. Bars show each model's contribution. Delta vs pre-tournament prior shown after results are fetched.</div>
+      <div id="rankList"></div>
+    </div>
+  </div>
+
+  <div id="accuracy" class="section">
+    <div class="card">
+      <div class="card-title">🎯 Prediction Accuracy (vs official results)</div>
+      <div id="accContent"><div class="empty">Fetch official results first to see accuracy.</div></div>
+    </div>
+  </div>
+
+  <div id="formula" class="section">
+    <div class="formula-section">
+    <div class="formula-section">
+      <h3 style="color:var(--pbe)">① PBE — Predictive Bayesian Ensemble <span style="font-size:0.65rem;color:var(--poi)">(v11: EQV-enhanced)</span></h3>
+      <div class="formula-eq">PBE = (1−ew)×Prior + ew×Likelihood + StageBonus
+
+Prior (v11) = (1−β)×HistPrior + β×normEV     [β = 0.10]
+HistPrior   = ConfStr × HistPrestige + CoachBonus
+normEV      = (EQV_team − EQV_min) / (EQV_max − EQV_min)   →  [0,1]
+EQV         = Sponsorship brand equity value (USD M, EMW Global 2026)
+
+Likelihood  = 0.30×Goals + 0.25×Defense + 0.20×Poss + 0.25×ShotEfficiency
+StageBonus  = +0.08 (≥7pts) · +0.04 (4–6pts) · +0.01 (1–3pts)
+ew          = min(0.35 + matches×0.10, 0.65)   [evidence weight grows]</div>
+      <p><strong>v11 change — EQV integration (Approach 2, Additive, β=0.10):</strong> The prior now blends 90% historical record with 10% normalised sponsorship brand equity value. EQV (EMW Global Athlete Brand Economy Report, SportBusiness April 2026) measures media equivalency value — converting social reach and engagement into equivalent paid-media cost. It is distinct from Transfermarkt squad values: EQV captures <em>current commercial relevance</em>, which correlates with squad depth and elite-club exposure that historical prestige underweights.</p>
+      <p style="margin-top:6px">The integration was validated via sandbox simulation across 12 confirmed WC 2026 group-stage results. Correlation analysis: PBE Prior ↔ EQV: r=0.828 (R²=68.6%), leaving <strong>31.4% independent variance</strong> — genuine new signal. Accuracy improvement: 63%→75% on non-draw matches (5/8→6/8). Key case: USA vs Paraguay (actual 4-1) — EQV gap ($310M vs $55M) correctly flipped the predicted favourite from Paraguay to USA.</p>
+      <p style="margin-top:6px;font-size:0.62rem;color:var(--muted)">β=0.10 (conservative) per conditional adoption recommendation. Validate at R16+ (n≥50 non-draw matches) before raising to β=0.15. EQV is a structural input, frozen pre-tournament — it does not update from match results (analogous to C5S). Original analysis: Fredy Salazar, PBE Economic Integration Report, June 2026.</p>
+    </div>
+    <div class="formula-section">
+      <h3 style="color:var(--elo)">② ELO — FIFA-style Elo Rating</h3>
+      <div class="formula-eq">E = 1 / (1 + 10^((Rb−Ra)/400))<br>Ra' = Ra + K × (S − E)<br>K = 60 (WC), goal_weight = 1 + ln(1 + |GD|)</div>
+      <p>Classic chess-derived rating adapted for football. K=60 for World Cup matches. Goal difference inflates K via logarithmic multiplier. Win probability derived from rating difference.</p>
+    </div>
+    <div class="formula-section">
+      <h3 style="color:var(--poi)">③ POI — Independent Poisson Goal Model</h3>
+      <div class="formula-eq">λH = avgGoals × AttH × DefA<br>λA = avgGoals × AttA × DefH<br>avgGoals = 2.74 (hydration-calibrated)<br>P(score) = e^(−λ) × λ^k / k!<br>Simulate 0–6 goals each team</div>
+      <p>Each team's expected goals modelled as independent Poisson processes. Attack/defense coefficients derived from pre-tournament historical scoring rates. <strong>v7 calibration:</strong> avgGoals raised from 2.60 → 2.74 (+5.4%) to account for WC 2026 mandatory 3-min hydration breaks (×2 per match): fresher players in 2nd half, net ~4.5 min extra stoppage time, and Club World Cup 2025 format signal (same break structure, avg 2.84 goals/game). Home advantage multiplier removed (neutral venue). Draw floor implicit in λ symmetry.</p>
+    </div>
+    <div class="formula-section">
+      <h3 style="color:var(--mkt)">④ MKT — Market-Implied Probability</h3>
+      <div class="formula-eq">P_mkt(W) = BaseOdds × FormMod × RankMod<br>FormMod = 0.5 + 0.5×(recentW/recentM)<br>RankMod = 1 − 0.3×(FIFARank_gap/100)</div>
+      <p>Replicates bookmaker consensus using FIFA ranking differentials and recent form (last 5 qualifying matches). Normalised to sum to 1 after margin removal. <strong>v7 calibration:</strong> home advantage multiplier removed (neutral venue, PR1 finding confirmed by 10-match simulation). Draw floor raised from 0.12 → 0.135 (+1.5pp) to reflect WC 2026 hydration break tactical reset effect. Goal rate updated to 2.74.</p>
+    </div>
+    <div class="formula-section">
+      <h3 style="color:var(--ens)">★ ENS — Integrated Ensemble (6 models)</h3>
+      <div class="formula-eq">ENS = 0.25×PBE + 0.22×ELO + 0.20×POI + 0.15×MKT + 0.18×C5S</div>
+      <p>Six-model weighted combination. <strong>v11:</strong> PBE prior now includes EQV brand equity (β=0.10), so the ensemble implicitly carries economic value through the PBE channel. All 5 base models update dynamically after each result (C5S excepted). Predictions for each match use model state trained on all <em>prior</em> results only — no lookahead. PBE leads (Bayesian evidence + EQV). ELO second. POI third. C5S fourth (structural, frozen). MKT fifth (rolling form).</p>
+      <p style="margin-top:6px;color:var(--warning);font-size:0.62rem">⚠️ Illustrative heuristic. <strong>v11:</strong> EQV integrated into PBE prior at β=0.10 (conditional adoption per June 2026 analytical report). All v7 hydration calibrations and v9 sequential replay architecture preserved.</p>
+    </div>
+    <div class="formula-section">
+      <h3 style="color:var(--c5s)">⑤ C5S — Five Capitals Score</h3>
+      <div class="formula-eq">C5S = 0.28×HistCap + 0.22×EconCap + 0.18×HumCap + 0.17×SportCap + 0.15×DevTraj
+H: WC wins, participations, win rate
+E: GDP size, GDP per capita, growth, stability
+Hm: HDI, political stability, diaspora
+S: Sport investment, conf. strength, host status
+T: P2 vs P1 improvement (momentum)
+
+Pairwise: P(H) = C5S_H / (C5S_H + C5S_A)  ·  draw floor = 0.18</div>
+      <p>Structural capital model based on the Multidimensional Sport Human Capital (MSHC) framework, designed by <strong>Fredy Salazar</strong>. All five dimensions min-max scaled to [0,1] across all 48 nations. <strong>C5S is frozen for the entire tournament</strong> — structural capitals (economy, HDI, sport institutions) are slow-moving by nature and do not respond to individual match outcomes. This orthogonality to PBE/ELO/POI/MKT is precisely its value: it captures what those models cannot see. Pairwise ratio prediction with draw floor 0.18 (slightly higher than PBE/MKT because structural models lack fatigue and momentum signal).</p>
+      <p style="margin-top:6px;font-size:0.62rem;color:var(--text2)"><strong>C5S is set as a default filter</strong> alongside PBE — together they show the structural pre-tournament view (C5S) and the evolving in-tournament Bayesian view (PBE), which is the most informative pair for tracking how match reality aligns with structural expectations. Key rankings: Brazil leads (1.000, historical capital), Germany 2nd (0.928), USA 3rd (0.657, economic capital). Biggest C5S vs ELO divergence: Qatar (C5S rank 7, ELO rank ~30) — structural investment without on-pitch pedigree.</p>
+    </div>
+  </div>
+
+</div><!-- /.container -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     DEVELOPER STATEMENT & COPYRIGHT NOTICE
+     ═══════════════════════════════════════════════════════════ -->
+<footer class="app-footer" role="contentinfo">
+
+  <div class="footer-dev">
+    <div class="footer-dev-title">Developer</div>
+    <div class="footer-dev-name">Fredy Salazar</div>
+    <div class="footer-dev-desc">
+      Concept, design, and original authorship of: PBE algorithm (Predictive Bayesian
+      Ensemble), Five Capitals Score framework (C5S / MSHC), ensemble architecture
+      (6-model weighted integration), sequential no-lookahead replay engine,
+      algorithm filter UI, tournament bracket resolver (PR1), data curation,
+      UI/UX design, and all creative and editorial content.
+    </div>
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <div class="footer-credits">
+    <div class="footer-credits-title">Third-Party Attributions &amp; Data Sources</div>
+    <ul class="footer-credits-list">
+      <li>
+        <span class="fc-label">Five Capitals Score (C5S) — Original Work</span>
+        Framework concept, five-capital taxonomy (Historical, Economic, Human, Sporting,
+        Development Trajectory), dimensional weights (28/22/18/17/15%), min-max
+        normalisation methodology, MSHC-to-pairwise prediction design, and
+        48-nation scoring: <strong>Fredy Salazar</strong> (2026).
+        Theoretical grounding: Human Capital Theory (Becker, G.S., 1964,
+        <em>Human Capital</em>, NBER); Social Capital Theory (Putnam, R.D., 1993,
+        <em>Making Democracy Work</em>); Sport Development frameworks
+        (Green &amp; Houlihan, 2005, <em>Elite Sport Development</em>, Routledge).
+        Underlying data: World Bank Open Data (GDP, 2024); UNDP Human Development
+        Report (HDI, 2023/24 edition). C5S scores are original analytical outputs,
+        not reproductions of any third-party index.
+      </li>
+      <li>
+        <span class="fc-label">Elo Rating System</span>
+        Arpad Elo, 1960. Football adaptation: World Football Elo Ratings
+        (<a href="https://www.eloratings.net" target="_blank" rel="noopener noreferrer">eloratings.net</a>).
+        WC K-factor (60) and goal-difference weighting per FIFA Technical Report 2022.
+        In-tournament Bayesian ELO update: original implementation by Fredy Salazar.
+      </li>
+      <li>
+        <span class="fc-label">Poisson Goal Model</span>
+        Dixon, M. &amp; Coles, S. (1997). "Modelling association football scores and
+        inefficiencies in the football betting market."
+        <em>Applied Statistics</em>, 46(2), 265–280.
+        In-tournament attack/defense coefficient update (Bayesian blending):
+        original implementation by Fredy Salazar.
+      </li>
+      <li>
+        <span class="fc-label">Market-Implied Probability Model</span>
+        Methodology informed by Shin, H.S. (1993), <em>Journal of Finance</em> 48(1);
+        and Forrest, D. &amp; Simmons, R. (2000), <em>The Statistician</em> 49(2).
+        FIFA ranking data: FIFA World Ranking, June 2026 (© FIFA).
+        Rolling form window and in-tournament update: original implementation
+        by Fredy Salazar.
+      </li>
+      <li>
+        <span class="fc-label">EQV — Sponsorship Brand Equity Values</span>
+        EMW Global Athlete Brand Economy Report (SportBusiness, April 2026).
+        Media Equivalency Value methodology: social reach + engagement converted
+        to estimated paid-media cost equivalent. Data used under fair use for
+        non-commercial analytical purposes. Integration into PBE prior (Approach 2,
+        Additive, β=0.10) and validation analysis: original work by
+        <strong>Fredy Salazar</strong> (PBE Economic Integration Report, June 2026).
+      </li>
+        openfootball/worldcup.json — open data repository maintained by Gerald Bauer
+        (<a href="https://github.com/openfootball/worldcup.json" target="_blank" rel="noopener noreferrer">github.com/openfootball</a>).
+        Licensed under Public Domain / CC0. Data verified against ESPN and FOX Sports.
+      </li>
+      <li>
+        <span class="fc-label">WC 2026 Bracket &amp; Schedule</span>
+        Official FIFA World Cup 2026™ competition regulations, bracket draw,
+        fixture list, and venue assignments (© FIFA 2026). R32 slot matrix
+        verified against ESPN and FOX Sports official bracket (June 2026).
+      </li>
+      <li>
+        <span class="fc-label">Hydration Break Calibration</span>
+        Mohr, M. et al. (2010). "Match performance of high-standard soccer players
+        with special reference to development of fatigue."
+        <em>Journal of Sports Sciences</em> 21(7), 519–528.
+        WC 2026 break format per FIFA competition regulations (3 min × 2 per match).
+        Calibration derivation: original analysis by Fredy Salazar.
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer-divider"></div>
+
+  <div class="footer-legal">
+    <div class="footer-copy">
+      © 2026 Fredy Salazar. All original work reserved: PBE algorithm, Five Capitals
+      Score (C5S/MSHC) framework, ensemble architecture, sequential replay engine,
+      bracket resolver, filter UI, and all application code and editorial content.
+      Third-party data and methodologies attributed above remain the property of
+      their respective owners and are used here under fair use / open licence.
+    </div>
+    <div class="footer-disclaimer">
+      This application is an independent, non-commercial analytical tool.
+      It is not affiliated with, endorsed by, or sponsored by FIFA, any
+      national football association, or any other rights holder referenced
+      herein. All third-party trademarks, competition names, and data
+      remain the property of their respective owners. Predictions are
+      illustrative heuristics — not financial, betting, or professional
+      sporting advice.
+    </div>
+    <div class="footer-version">
+      WC 2026 Predictor · v11.0 (EQV-enhanced PBE · Algo Filter · Dynamic Replay · C5S · PR1) · Built June 2026
+    </div>
+  </div>
+
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const PRED_DATE = '2026-06-10'; // All baseline predictions frozen as of this date
+const API_URL   = 'https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json';
+
+// Team name normalisations from API to internal
+const NAME_MAP = {
+  'USA':'United States','Czech Republic':'Czechia','Curaçao':'Curacao',
+  'Ivory Coast':'Ivory Coast','Bosnia-Herzegovina':'Bosnia-Herzegovina',
+  'DR Congo':'DR Congo','Cape Verde':'Cape Verde'
+};
+
+// ─────────────────────────────────────────────
+// TEAM MASTER DATA
+// Pre-tournament stats frozen at Jun 10 2026
+// ELO ratings: approximate FIFA/club-Elo values
+// POI: attack / defense coefficients vs average
+// MKT: FIFA ranking (Jun 2026), recent form W/M
+// ─────────────────────────────────────────────
+const TEAMS = {
+  'Argentina':       {conf:'SA',cs:0.80,hist:0.95,cw:1,ct:2, elo:1840, att:1.55,def:0.62, rank:1, fw:4,fm:5},
+  'France':          {conf:'EU',cs:0.75,hist:0.90,cw:3,ct:3, elo:1820, att:1.48,def:0.65, rank:2, fw:4,fm:5},
+  'Brazil':          {conf:'SA',cs:0.80,hist:0.95,cw:0,ct:5, elo:1800, att:1.45,def:0.68, rank:5, fw:3,fm:5},
+  'England':         {conf:'EU',cs:0.75,hist:0.75,cw:0,ct:2, elo:1790, att:1.40,def:0.70, rank:4, fw:4,fm:5},
+  'Spain':           {conf:'EU',cs:0.75,hist:0.80,cw:1,ct:1, elo:1785, att:1.42,def:0.68, rank:6, fw:4,fm:5},
+  'Portugal':        {conf:'EU',cs:0.75,hist:0.70,cw:1,ct:1, elo:1760, att:1.38,def:0.72, rank:7, fw:3,fm:5},
+  'Germany':         {conf:'EU',cs:0.75,hist:0.85,cw:0,ct:1, elo:1755, att:1.35,def:0.73, rank:12, fw:3,fm:5},
+  'Netherlands':     {conf:'EU',cs:0.75,hist:0.75,cw:1,ct:1, elo:1750, att:1.33,def:0.74, rank:8, fw:3,fm:5},
+  'Belgium':         {conf:'EU',cs:0.75,hist:0.65,cw:0,ct:0, elo:1730, att:1.30,def:0.76, rank:3, fw:3,fm:5},
+  'Uruguay':         {conf:'SA',cs:0.80,hist:0.70,cw:2,ct:1, elo:1720, att:1.25,def:0.78, rank:18, fw:3,fm:5},
+  'Croatia':         {conf:'EU',cs:0.75,hist:0.65,cw:2,ct:0, elo:1710, att:1.22,def:0.80, rank:10, fw:3,fm:5},
+  'Morocco':         {conf:'AF',cs:0.55,hist:0.45,cw:1,ct:0, elo:1700, att:1.20,def:0.78, rank:14, fw:3,fm:5},
+  'Canada':          {conf:'NA',cs:0.50,hist:0.35,cw:0,ct:0, elo:1635, att:1.00,def:0.88, rank:47, fw:2,fm:5},
+  'Japan':           {conf:'AS',cs:0.45,hist:0.50,cw:2,ct:0, elo:1695, att:1.18,def:0.80, rank:16, fw:3,fm:5},
+  'United States':   {conf:'NA',cs:0.50,hist:0.45,cw:1,ct:0, elo:1690, att:1.15,def:0.82, rank:11, fw:3,fm:5},
+  'Switzerland':     {conf:'EU',cs:0.75,hist:0.55,cw:1,ct:0, elo:1685, att:1.12,def:0.82, rank:19, fw:2,fm:5},
+  'Mexico':          {conf:'NA',cs:0.50,hist:0.60,cw:2,ct:1, elo:1680, att:1.10,def:0.84, rank:15, fw:3,fm:5},
+  'Senegal':         {conf:'AF',cs:0.55,hist:0.45,cw:0,ct:1, elo:1670, att:1.08,def:0.85, rank:20, fw:3,fm:5},
+  'Iran':            {conf:'AS',cs:0.45,hist:0.40,cw:0,ct:0, elo:1640, att:1.00,def:0.88, rank:22, fw:2,fm:5},
+  'South Korea':     {conf:'AS',cs:0.45,hist:0.50,cw:1,ct:0, elo:1635, att:0.98,def:0.89, rank:23, fw:2,fm:5},
+  'Australia':       {conf:'AS',cs:0.45,hist:0.45,cw:0,ct:0, elo:1630, att:0.95,def:0.90, rank:24, fw:2,fm:5},
+  'Colombia':        {conf:'SA',cs:0.80,hist:0.50,cw:0,ct:0, elo:1625, att:1.05,def:0.87, rank:25, fw:2,fm:5},
+  'Sweden':          {conf:'EU',cs:0.75,hist:0.50,cw:0,ct:0, elo:1620, att:1.02,def:0.88, rank:26, fw:2,fm:5},
+  'Norway':          {conf:'EU',cs:0.75,hist:0.40,cw:0,ct:0, elo:1615, att:1.05,def:0.88, rank:28, fw:3,fm:5},
+  'Algeria':         {conf:'AF',cs:0.55,hist:0.40,cw:1,ct:1, elo:1610, att:1.00,def:0.90, rank:35, fw:2,fm:5},
+  'Ghana':           {conf:'AF',cs:0.55,hist:0.45,cw:0,ct:0, elo:1600, att:0.95,def:0.92, rank:60, fw:2,fm:5},
+  'Ecuador':         {conf:'SA',cs:0.80,hist:0.40,cw:1,ct:0, elo:1590, att:0.92,def:0.93, rank:45, fw:2,fm:5},
+  'Turkiye':         {conf:'EU',cs:0.75,hist:0.45,cw:0,ct:0, elo:1585, att:0.90,def:0.93, rank:29, fw:2,fm:5},
+  'Ivory Coast':     {conf:'AF',cs:0.55,hist:0.45,cw:0,ct:1, elo:1580, att:0.95,def:0.92, rank:48, fw:2,fm:5},
+  'Tunisia':         {conf:'AF',cs:0.55,hist:0.40,cw:1,ct:0, elo:1560, att:0.88,def:0.94, rank:36, fw:2,fm:5},
+  'Paraguay':        {conf:'SA',cs:0.80,hist:0.40,cw:0,ct:0, elo:1555, att:0.85,def:0.95, rank:64, fw:2,fm:5},
+  'Austria':         {conf:'EU',cs:0.75,hist:0.45,cw:0,ct:0, elo:1550, att:0.88,def:0.94, rank:30, fw:2,fm:5},
+  'Czechia':         {conf:'EU',cs:0.75,hist:0.45,cw:0,ct:0, elo:1545, att:0.85,def:0.95, rank:38, fw:2,fm:5},
+  'Scotland':        {conf:'EU',cs:0.75,hist:0.45,cw:0,ct:0, elo:1540, att:0.82,def:0.96, rank:39, fw:2,fm:5},
+  'Egypt':           {conf:'AF',cs:0.55,hist:0.40,cw:0,ct:0, elo:1530, att:0.85,def:0.95, rank:34, fw:2,fm:5},
+  'Saudi Arabia':    {conf:'AS',cs:0.45,hist:0.35,cw:0,ct:0, elo:1520, att:0.80,def:0.97, rank:56, fw:1,fm:5},
+  'Iraq':            {conf:'AS',cs:0.45,hist:0.35,cw:1,ct:0, elo:1510, att:0.78,def:0.97, rank:58, fw:1,fm:5},
+  'Uzbekistan':      {conf:'AS',cs:0.45,hist:0.30,cw:0,ct:0, elo:1505, att:0.78,def:0.98, rank:62, fw:2,fm:5},
+  'South Africa':    {conf:'AF',cs:0.55,hist:0.35,cw:0,ct:0, elo:1500, att:0.80,def:0.97, rank:65, fw:1,fm:5},
+  'Qatar':           {conf:'AS',cs:0.45,hist:0.30,cw:1,ct:0, elo:1495, att:0.75,def:0.99, rank:70, fw:1,fm:5},
+  'Jordan':          {conf:'AS',cs:0.45,hist:0.25,cw:0,ct:0, elo:1480, att:0.72,def:1.00, rank:76, fw:1,fm:5},
+  'New Zealand':     {conf:'OC',cs:0.30,hist:0.30,cw:0,ct:0, elo:1470, att:0.70,def:1.02, rank:95, fw:1,fm:5},
+  'Bosnia-Herzegovina':{conf:'EU',cs:0.75,hist:0.35,cw:0,ct:0, elo:1540, att:0.85,def:0.95, rank:55, fw:2,fm:5},
+  'Panama':          {conf:'NA',cs:0.50,hist:0.30,cw:0,ct:0, elo:1460, att:0.68,def:1.03, rank:80, fw:1,fm:5},
+  'Haiti':           {conf:'NA',cs:0.50,hist:0.25,cw:0,ct:0, elo:1430, att:0.62,def:1.06, rank:96, fw:1,fm:5},
+  'Curacao':         {conf:'NA',cs:0.50,hist:0.20,cw:0,ct:0, elo:1360, att:0.50,def:1.15, rank:105,fw:0,fm:5},
+  'DR Congo':        {conf:'AF',cs:0.55,hist:0.25,cw:0,ct:0, elo:1450, att:0.68,def:1.03, rank:90, fw:1,fm:5},
+  'Cape Verde':      {conf:'AF',cs:0.55,hist:0.25,cw:0,ct:0, elo:1440, att:0.65,def:1.04, rank:88, fw:1,fm:5}
+};
+
+// Full group-stage schedule (all 72 group matches)
+const SCHEDULE = [
+  {date:'2026-06-11',grp:'A',h:'Mexico',a:'South Africa'},
+  {date:'2026-06-11',grp:'A',h:'South Korea',a:'Czechia'},
+  {date:'2026-06-12',grp:'B',h:'Canada',a:'Bosnia-Herzegovina'},
+  {date:'2026-06-12',grp:'D',h:'United States',a:'Paraguay'},
+  {date:'2026-06-13',grp:'B',h:'Qatar',a:'Switzerland'},
+  {date:'2026-06-13',grp:'C',h:'Brazil',a:'Morocco'},
+  {date:'2026-06-13',grp:'C',h:'Haiti',a:'Scotland'},
+  {date:'2026-06-13',grp:'D',h:'Australia',a:'Turkiye'},
+  {date:'2026-06-14',grp:'E',h:'Germany',a:'Curacao'},
+  {date:'2026-06-14',grp:'F',h:'Netherlands',a:'Japan'},
+  {date:'2026-06-14',grp:'E',h:'Ivory Coast',a:'Ecuador'},
+  {date:'2026-06-14',grp:'F',h:'Sweden',a:'Tunisia'},
+  {date:'2026-06-15',grp:'H',h:'Spain',a:'Cape Verde'},
+  {date:'2026-06-15',grp:'G',h:'Belgium',a:'Egypt'},
+  {date:'2026-06-15',grp:'H',h:'Saudi Arabia',a:'Uruguay'},
+  {date:'2026-06-15',grp:'G',h:'Iran',a:'New Zealand'},
+  {date:'2026-06-16',grp:'I',h:'France',a:'Senegal'},
+  {date:'2026-06-16',grp:'I',h:'Iraq',a:'Norway'},
+  {date:'2026-06-16',grp:'J',h:'Argentina',a:'Algeria'},
+  {date:'2026-06-16',grp:'J',h:'Austria',a:'Jordan'},
+  {date:'2026-06-17',grp:'K',h:'Portugal',a:'DR Congo'},
+  {date:'2026-06-17',grp:'L',h:'England',a:'Croatia'},
+  {date:'2026-06-17',grp:'L',h:'Ghana',a:'Panama'},
+  {date:'2026-06-17',grp:'K',h:'Uzbekistan',a:'Colombia'},
+  {date:'2026-06-18',grp:'A',h:'Czechia',a:'South Africa'},
+  {date:'2026-06-18',grp:'B',h:'Switzerland',a:'Bosnia-Herzegovina'},
+  {date:'2026-06-18',grp:'B',h:'Canada',a:'Qatar'},
+  {date:'2026-06-18',grp:'A',h:'Mexico',a:'South Korea'},
+  {date:'2026-06-19',grp:'D',h:'United States',a:'Australia'},
+  {date:'2026-06-19',grp:'C',h:'Scotland',a:'Morocco'},
+  {date:'2026-06-19',grp:'C',h:'Brazil',a:'Haiti'},
+  {date:'2026-06-19',grp:'D',h:'Turkiye',a:'Paraguay'},
+  {date:'2026-06-20',grp:'F',h:'Netherlands',a:'Sweden'},
+  {date:'2026-06-20',grp:'E',h:'Germany',a:'Ivory Coast'},
+  {date:'2026-06-20',grp:'E',h:'Ecuador',a:'Curacao'},
+  {date:'2026-06-20',grp:'F',h:'Tunisia',a:'Japan'},
+  {date:'2026-06-21',grp:'H',h:'Spain',a:'Saudi Arabia'},
+  {date:'2026-06-21',grp:'G',h:'Belgium',a:'Iran'},
+  {date:'2026-06-21',grp:'H',h:'Uruguay',a:'Cape Verde'},
+  {date:'2026-06-21',grp:'G',h:'New Zealand',a:'Egypt'},
+  {date:'2026-06-22',grp:'J',h:'Argentina',a:'Austria'},
+  {date:'2026-06-22',grp:'I',h:'France',a:'Iraq'},
+  {date:'2026-06-22',grp:'I',h:'Norway',a:'Senegal'},
+  {date:'2026-06-22',grp:'J',h:'Jordan',a:'Algeria'},
+  {date:'2026-06-23',grp:'K',h:'Portugal',a:'Uzbekistan'},
+  {date:'2026-06-23',grp:'L',h:'England',a:'Ghana'},
+  {date:'2026-06-23',grp:'L',h:'Panama',a:'Croatia'},
+  {date:'2026-06-23',grp:'K',h:'Colombia',a:'DR Congo'},
+  {date:'2026-06-24',grp:'C',h:'Scotland',a:'Brazil'},
+  {date:'2026-06-24',grp:'C',h:'Morocco',a:'Haiti'},
+  {date:'2026-06-24',grp:'B',h:'Switzerland',a:'Canada'},
+  {date:'2026-06-24',grp:'B',h:'Bosnia-Herzegovina',a:'Qatar'},
+  {date:'2026-06-24',grp:'A',h:'Czechia',a:'Mexico'},
+  {date:'2026-06-24',grp:'A',h:'South Africa',a:'South Korea'},
+  {date:'2026-06-25',grp:'E',h:'Curacao',a:'Ivory Coast'},
+  {date:'2026-06-25',grp:'E',h:'Ecuador',a:'Germany'},
+  {date:'2026-06-25',grp:'F',h:'Japan',a:'Sweden'},
+  {date:'2026-06-25',grp:'F',h:'Tunisia',a:'Netherlands'},
+  {date:'2026-06-25',grp:'D',h:'Turkiye',a:'United States'},
+  {date:'2026-06-25',grp:'D',h:'Paraguay',a:'Australia'},
+  {date:'2026-06-26',grp:'G',h:'Belgium',a:'New Zealand'},
+  {date:'2026-06-26',grp:'G',h:'Iran',a:'Egypt'},
+  {date:'2026-06-26',grp:'H',h:'Spain',a:'Uruguay'},
+  {date:'2026-06-26',grp:'H',h:'Cape Verde',a:'Saudi Arabia'},
+  {date:'2026-06-26',grp:'I',h:'France',a:'Norway'},
+  {date:'2026-06-26',grp:'I',h:'Senegal',a:'Iraq'},
+  {date:'2026-06-27',grp:'L',h:'Panama',a:'England'},
+  {date:'2026-06-27',grp:'L',h:'Croatia',a:'Ghana'},
+  {date:'2026-06-27',grp:'K',h:'Colombia',a:'Portugal'},
+  {date:'2026-06-27',grp:'K',h:'DR Congo',a:'Uzbekistan'},
+  {date:'2026-06-27',grp:'J',h:'Algeria',a:'Austria'},
+  {date:'2026-06-27',grp:'J',h:'Jordan',a:'Argentina'}
+];
+
+// ─────────────────────────────────────────────
+// SECURITY HELPERS
+// ─────────────────────────────────────────────
+function esc(s){
+  if(s===null||s===undefined)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function knownTeam(n){return Object.prototype.hasOwnProperty.call(TEAMS,n)}
+function normalise(name){
+  if(!name)return null;
+  return NAME_MAP[name]||name;
+}
+
+// ─────────────────────────────────────────────
+// FLAGS
+// ─────────────────────────────────────────────
+const FLAGS={
+  'Argentina':'🇦🇷','France':'🇫🇷','Brazil':'🇧🇷','Germany':'🇩🇪','England':'🏴',
+  'Spain':'🇪🇸','Portugal':'🇵🇹','Netherlands':'🇳🇱','Croatia':'🇭🇷','Uruguay':'🇺🇾',
+  'Belgium':'🇧🇪','Switzerland':'🇨🇭','Mexico':'🇲🇽','United States':'🇺🇸','Canada':'🇨🇦',
+  'Japan':'🇯🇵','South Korea':'🇰🇷','Australia':'🇦🇺','Iran':'🇮🇷','Saudi Arabia':'🇸🇦',
+  'Qatar':'🇶🇦','Iraq':'🇮🇶','Uzbekistan':'🇺🇿','Jordan':'🇯🇴','Morocco':'🇲🇦',
+  'Senegal':'🇸🇳','Tunisia':'🇹🇳','Ghana':'🇬🇭','Egypt':'🇪🇬','Algeria':'🇩🇿',
+  'Ivory Coast':'🇨🇮','South Africa':'🇿🇦','Cape Verde':'🇨🇻','DR Congo':'🇨🇩',
+  'Ecuador':'🇪🇨','Paraguay':'🇵🇾','Colombia':'🇨🇴','Turkiye':'🇹🇷','Czechia':'🇨🇿',
+  'Scotland':'🏴','Austria':'🇦🇹','Panama':'🇵🇦','Haiti':'🇭🇹','Curacao':'🇨🇼',
+  'New Zealand':'🇳🇿','Bosnia-Herzegovina':'🇧🇦','Norway':'🇳🇴','Sweden':'🇸🇪'
+};
+function flag(t){return FLAGS[t]||'🏳️'}
+
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// EQV — Sponsorship / Brand Equity Values
+// Source: EMW Global Athlete Brand Economy Report
+//         (SportBusiness, April 2026)
+// Units: USD millions (annual media equivalency value)
+// Methodology: social reach + engagement → paid-media cost equivalent
+// Distinct from Transfermarkt squad values (TMV):
+//   EQV = forward-looking brand equity (commercial relevance NOW)
+//   TMV = transfer value (playing potential + club scarcity)
+// Both correlate with PBE prior (r≈0.83) but EQV has
+// 31% residual independent variance — the new signal we add.
+//
+// Integration: Approach 2 (Additive, β=0.10 conservative)
+//   prior_v11 = 0.90 × histPrior + 0.10 × normEV
+//   Conditional adoption per analytical report (June 2026, F. Salazar)
+//   β=0.10 chosen conservatively; validated at R16+ before raising to 0.15
+// ─────────────────────────────────────────────
+const EQV_USD_M = Object.freeze({
+  'France':820,'England':780,'Brazil':720,'Argentina':650,'Portugal':590,
+  'Germany':540,'Spain':530,'Norway':480,'Netherlands':320,'Belgium':260,
+  'United States':310,'Uruguay':180,'Morocco':190,'Senegal':170,'Japan':195,
+  'South Korea':145,'Mexico':220,'Colombia':130,'Ivory Coast':140,'Turkiye':150,
+  'Sweden':135,'Croatia':125,'Switzerland':110,'Ecuador':90,'Australia':95,
+  'Canada':155,'Scotland':85,'Algeria':75,'Ghana':65,'Austria':80,
+  'Paraguay':55,'South Africa':45,'Czechia':70,'Bosnia-Herzegovina':50,
+  'Egypt':80,'Iran':35,'Saudi Arabia':65,'New Zealand':30,'Cape Verde':22,
+  'Tunisia':60,'Uzbekistan':28,'DR Congo':20,'Jordan':15,'Qatar':42,
+  'Iraq':18,'Panama':20,'Curacao':12,'Haiti':10
+});
+
+// Pre-compute normalisation bounds (min/max across all 48 teams)
+const _eqvVals = Object.values(EQV_USD_M);
+const _eqvMin  = Math.min(..._eqvVals); // Haiti: 10
+const _eqvMax  = Math.max(..._eqvVals); // France: 820
+
+// Normalise a team's EQV to [0,1]
+function normEV(t) {
+  const v = EQV_USD_M[t] ?? _eqvMin;
+  return (v - _eqvMin) / (_eqvMax - _eqvMin);
+}
+
+// EQV beta weight (Approach 2, conservative)
+const EQV_BETA = 0.10;
+
+// MODEL 1 — PBE (Predictive Bayesian Ensemble)
+// ─────────────────────────────────────────────
+class PBEModel {
+  constructor(){this.state={};this._init()}
+  _init(){
+    for(const t in TEAMS){
+      const d=TEAMS[t];
+      const coachB=Math.min(d.cw*0.05+d.ct*0.03,0.15);
+      // Historical prior (unchanged from v10):
+      const histPrior = d.cs*d.hist+coachB;
+      // v11: Approach 2 additive EQV blend (β=0.10, conservative adoption)
+      // prior = (1−β)×histPrior + β×normEV
+      // Rationale: EQV carries 31% independent variance vs histPrior (r=0.828).
+      // β=0.10 → 10% current brand equity, 90% historical record.
+      // Source: PBE Economic Integration Report (F. Salazar, June 2026).
+      const ev    = normEV(t);
+      const prior = (1 - EQV_BETA) * histPrior + EQV_BETA * ev;
+      this.state[t]={
+        prior,          // blended prior used for all PBE calculations
+        histPrior,      // pure historical (stored for display/delta)
+        eqvNorm:ev,     // normalised EQV [0,1] (stored for display)
+        origPrior:prior,// snapshot at init (used in ranking delta)
+        pbe:prior,
+        matches:0,wins:0,draws:0,losses:0,
+        gf:0,ga:0,pts:0,possession:50,shots:10
+      };
+    }
+  }
+  update(h,a,hg,ag){
+    if(!this.state[h]||!this.state[a])return;
+    const hs=this.state[h],as=this.state[a];
+    hs.matches++;as.matches++;
+    hs.gf+=hg;hs.ga+=ag;as.gf+=ag;as.ga+=hg;
+    if(hg>ag){hs.wins++;hs.pts+=3;as.losses++}
+    else if(hg<ag){as.wins++;as.pts+=3;hs.losses++}
+    else{hs.draws++;as.draws++;hs.pts++;as.pts++}
+    const ts=hs.prior+as.prior;
+    hs.possession=Math.round(35+(hs.prior/ts)*50);
+    as.possession=100-hs.possession;
+    hs.shots=Math.round(8+(hs.possession/100)*12);
+    as.shots=Math.round(8+(as.possession/100)*12);
+    [hs,as].forEach(s=>this._updateScore(s));
+  }
+  _updateScore(s){
+    if(!s.matches)return;
+    const gf90=s.gf/s.matches,ga90=s.ga/s.matches;
+    const gpShot=s.gf/Math.max(s.shots*s.matches,1);
+    const L=0.30*Math.min(gf90/2.5,1)+0.25*Math.max(1-ga90/2.5,0)+0.20*(s.possession/100)+0.25*Math.min(gpShot*10,1);
+    const sb=s.pts>=7?0.08:s.pts>=4?0.04:s.pts>=1?0.01:0;
+    const ew=Math.min(0.35+s.matches*0.10,0.65);
+    s.pbe=(1-ew)*s.prior+ew*L+sb;
+  }
+  score(t){return this.state[t]?this.state[t].pbe:0.5}
+  predict(h,a){
+    const hp=this.score(h),ap=this.score(a);
+    return this._fromScores(hp,ap,h,a);
+  }
+  _fromScores(hp,ap,h,a){
+    const tot=hp+ap,hw0=hp/tot,aw0=ap/tot;
+    // v7: enforce draw floor AFTER normalisation by redistributing from H+A
+    const DRAW_FLOOR=0.165;
+    const rawDraw=Math.max(0,1-hw0-aw0);
+    let hw,aw,dr;
+    if(rawDraw>=DRAW_FLOOR){
+      // Already above floor — normalise as usual
+      dr=rawDraw; const sum=hw0+aw0+dr;
+      hw=hw0/sum; aw=aw0/sum; dr=dr/sum;
+    } else {
+      // Force draw to DRAW_FLOOR; scale H and A proportionally to fill the rest
+      dr=DRAW_FLOOR;
+      const haPool=1-DRAW_FLOOR;
+      const haPropTot=hw0+aw0||1;
+      hw=hw0/haPropTot*haPool;
+      aw=aw0/haPropTot*haPool;
+    }
+    const tg=2.74,hg=Math.round((hp/tot)*tg),ag=Math.round((ap/tot)*tg);
+    return{homeWin:hw,draw:dr,awayWin:aw,predHome:hg,predAway:ag,hScore:hp,aScore:ap};
+  }
+  origScore(t){return this.state[t]?this.state[t].origPrior:0.5}
+}
+
+// ─────────────────────────────────────────────
+// MODEL 2 — ELO
+// ─────────────────────────────────────────────
+class ELOModel {
+  constructor(){
+    this.ratings={};this.origRatings={};
+    for(const t in TEAMS){this.ratings[t]=TEAMS[t].elo;this.origRatings[t]=TEAMS[t].elo}
+  }
+  _expect(ra,rb){return 1/(1+Math.pow(10,(rb-ra)/400))}
+  update(h,a,hg,ag){
+    if(!this.ratings[h]||!this.ratings[a])return;
+    const K=60,ra=this.ratings[h],rb=this.ratings[a];
+    const ea=this._expect(ra,rb),eb=1-ea;
+    const gd=Math.abs(hg-ag),gw=gd===0?1:1+Math.log(1+gd);
+    let sa,sb;
+    if(hg>ag){sa=1;sb=0}else if(hg<ag){sa=0;sb=1}else{sa=0.5;sb=0.5}
+    this.ratings[h]=Math.round(ra+K*gw*(sa-ea));
+    this.ratings[a]=Math.round(rb+K*gw*(sb-eb));
+  }
+  predict(h,a){
+    const ra=this.ratings[h]||1500,rb=this.ratings[a]||1500;
+    const hw=this._expect(ra,rb);
+    // Draw probability modelled as Gaussian around 0.5 difference
+    const dr=Math.max(0.10,0.30-Math.abs(hw-0.5)*0.4);
+    const aw=Math.max(0,(1-hw-dr));
+    const sum=hw+dr+aw;
+    // Score from expected goals via rating ratio
+    const ratio=ra/rb;
+    const avgGoal=2.74;
+    const hg=Math.round(avgGoal*ratio/(1+ratio));
+    const ag=Math.round(avgGoal/(1+ratio));
+    return{homeWin:hw/sum,draw:dr/sum,awayWin:aw/sum,predHome:hg,predAway:ag,hScore:ra,aScore:rb};
+  }
+}
+
+// ─────────────────────────────────────────────
+// MODEL 3 — POISSON
+// ─────────────────────────────────────────────
+class PoissonModel {
+  constructor(){
+    // In-tournament attack/defense coefficients — updated after each result.
+    // Start from pre-tournament values; evidence weight grows with matches played.
+    this.att={};this.def={};this.mp={};
+    for(const t in TEAMS){
+      this.att[t]=TEAMS[t].att;
+      this.def[t]=TEAMS[t].def;
+      this.mp[t]=0;
+    }
+  }
+  _poisson(lam,k){let p=Math.exp(-lam);for(let i=0;i<k;i++)p*=lam/(i+1);return p}
+  predict(h,a){
+    const ha=this.att[h]??TEAMS[h]?.att??1.0;
+    const hd=this.def[h]??TEAMS[h]?.def??1.0;
+    const aa=this.att[a]??TEAMS[a]?.att??1.0;
+    const ad=this.def[a]??TEAMS[a]?.def??1.0;
+    const avgG=2.74;
+    const lh=avgG*ha*ad;
+    const la=avgG*aa*hd;
+    const MAX=7;
+    let hw=0,dr=0,aw=0;
+    for(let i=0;i<=MAX;i++)for(let j=0;j<=MAX;j++){
+      const p=this._poisson(lh,i)*this._poisson(la,j);
+      if(i>j)hw+=p;else if(i===j)dr+=p;else aw+=p;
+    }
+    const s=hw+dr+aw;
+    return{homeWin:hw/s,draw:dr/s,awayWin:aw/s,
+           predHome:Math.round(lh),predAway:Math.round(la),
+           hScore:lh,aScore:la};
+  }
+  // Bayesian update: blend prior with observed scoring rate
+  // Evidence weight: min(0.3 + mp*0.1, 0.7) — same logic as PBE
+  update(h,a,hg,ag){
+    if(!TEAMS[h]||!TEAMS[a])return;
+    this.mp[h]=(this.mp[h]||0)+1;
+    this.mp[a]=(this.mp[a]||0)+1;
+    const avgG=2.74;
+    // Attack: observed goals / avgG gives implied attack strength
+    // Defense: goals conceded vs avgG gives implied defensive weakness
+    const EW_H=Math.min(0.3+this.mp[h]*0.1,0.7);
+    const EW_A=Math.min(0.3+this.mp[a]*0.1,0.7);
+    // Attack: goals scored / avgG → implied attack strength
+    // Defense: goals CONCEDED / avgG → higher = weaker defence (correct direction)
+    const obsHA=hg/avgG;  // home attack signal (goals scored by home)
+    const obsAD=hg/avgG;  // away defence signal (goals conceded by away = home scored)
+    const obsAA=ag/avgG;  // away attack signal (goals scored by away)
+    const obsHD=ag/avgG;  // home defence signal (goals conceded by home = away scored)
+    this.att[h]=(1-EW_H)*this.att[h]+EW_H*Math.max(obsHA,0.10);
+    this.def[h]=(1-EW_H)*this.def[h]+EW_H*Math.max(obsHD,0.50);
+    this.att[a]=(1-EW_A)*this.att[a]+EW_A*Math.max(obsAA,0.10);
+    this.def[a]=(1-EW_A)*this.def[a]+EW_A*Math.max(obsAD,0.50);
+  }
+}
+
+// ─────────────────────────────────────────────
+// MODEL 4 — MARKET IMPLIED
+// ─────────────────────────────────────────────
+class MarketModel {
+  constructor(){
+    // Track actual WC form; start from pre-qualifying baseline
+    this.fw={};this.fm={};
+    for(const t in TEAMS){this.fw[t]=TEAMS[t].fw;this.fm[t]=TEAMS[t].fm;}
+  }
+  predict(h,a){
+    const hd=TEAMS[h],ad=TEAMS[a];
+    if(!hd||!ad)return{homeWin:0.33,draw:0.33,awayWin:0.34,predHome:1,predAway:1,hScore:1,aScore:1};
+    const hFW=this.fw[h]??hd.fw, hFM=this.fm[h]??hd.fm;
+    const aFW=this.fw[a]??ad.fw, aFM=this.fm[a]??ad.fm;
+    const hForm=0.5+0.5*(hFW/Math.max(hFM,1));
+    const aForm=0.5+0.5*(aFW/Math.max(aFM,1));
+    const rankGap=Math.min(Math.abs(hd.rank-ad.rank),100);
+    const hRankMod=hd.rank<ad.rank?1+0.3*(rankGap/100):1-0.3*(rankGap/100);
+    const aRankMod=ad.rank<hd.rank?1+0.3*(rankGap/100):1-0.3*(rankGap/100);
+    const hStr=hForm*hRankMod;
+    const aStr=aForm*aRankMod;
+    const tot=hStr+aStr;
+    const hw=hStr/tot,aw=aStr/tot;
+    const dr=Math.max(0.135,0.30-Math.abs(hw-0.5)*0.35);
+    const sum=hw+aw+dr;
+    const avgG=2.74;
+    const hg=Math.round(avgG*hw/(hw+aw));
+    const ag=Math.round(avgG*aw/(hw+aw));
+    return{homeWin:hw/sum,draw:dr/sum,awayWin:aw/sum,predHome:hg,predAway:ag,hScore:hStr,aScore:aStr};
+  }
+  // Sliding window form: last 6 matches, WC results replace baseline
+  update(h,a,hg,ag){
+    this.fm[h]=(this.fm[h]??5)+1;
+    this.fm[a]=(this.fm[a]??5)+1;
+    if(hg>ag) this.fw[h]=(this.fw[h]??0)+1;
+    else if(ag>hg) this.fw[a]=(this.fw[a]??0)+1;
+    const MAX=6;
+    [h,a].forEach(t=>{
+      if(this.fm[t]>MAX){
+        this.fw[t]=Math.round(this.fw[t]/this.fm[t]*MAX);
+        this.fm[t]=MAX;
+      }
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+// ENSEMBLE
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// MODEL 5 — C5S (Five Capitals Score)
+// Based on the Multidimensional Sport Human Capital (MSHC) framework.
+// Original framework design and capital weighting: Fredy Salazar.
+// Five structural dimensions frozen at Jun 10 2026 (pre-tournament).
+// Unlike PBE/ELO/MKT, C5S does NOT update intra-tournament —
+// structural capitals (economy, HDI, institutions) are slow-moving.
+//
+// Dimensions & weights (from MSHC document):
+//   Historical Capital  28% — WC wins, participations, win rate
+//   Economic Capital    22% — GDP size, GDP per capita, growth, stability
+//   Human Capital       18% — HDI, political stability, diaspora
+//   Sporting Capital    17% — Sport investment, conf. strength, host status
+//   Development Traj.   15% — P2 vs P1 improvement (momentum)
+//
+// Pairwise prediction: ratio-based with draw floor 0.18
+// (structural models don't capture fatigue → slightly more draws than POI)
+// ─────────────────────────────────────────────
+const C5S_SCORES = Object.freeze({
+  'Brazil':1.000,'Germany':0.928,'United States':0.657,'France':0.627,
+  'Uruguay':0.624,'England':0.587,'Qatar':0.538,'Spain':0.522,
+  'Switzerland':0.503,'Argentina':0.480,'Netherlands':0.460,'Paraguay':0.425,
+  'Mexico':0.423,'Australia':0.411,'Sweden':0.404,'South Korea':0.401,
+  'Norway':0.386,'Scotland':0.377,'Belgium':0.349,'Saudi Arabia':0.339,
+  'Czechia':0.317,'Croatia':0.317,'Curacao':0.296,'Japan':0.295,
+  'Canada':0.284,'Austria':0.272,'Portugal':0.269,'New Zealand':0.256,
+  'Bosnia-Herzegovina':0.242,'Ivory Coast':0.239,'Morocco':0.238,
+  'Turkiye':0.238,'Uzbekistan':0.228,'Algeria':0.221,'Iran':0.208,
+  'Senegal':0.203,'DR Congo':0.202,'Jordan':0.184,'Ghana':0.161,
+  'Colombia':0.155,'Cape Verde':0.146,'Panama':0.129,'Egypt':0.121,
+  'Tunisia':0.106,'South Africa':0.104,'Ecuador':0.077,'Iraq':0.014,
+  'Haiti':0.000
+});
+
+// Capital dimension breakdown per team (for display in ranking tab)
+const C5S_DIMS = Object.freeze({
+  'Brazil':         {hist:1.000,econ:0.331,hum:0.616,sport:0.445,traj:0.650},
+  'Germany':        {hist:0.848,econ:0.429,hum:0.746,sport:0.441,traj:0.446},
+  'United States':  {hist:0.057,econ:0.862,hum:0.768,sport:0.416,traj:0.561},
+  'France':         {hist:0.526,econ:0.409,hum:0.667,sport:0.450,traj:0.352},
+  'Uruguay':        {hist:0.515,econ:0.339,hum:0.623,sport:0.400,traj:0.579},
+  'England':        {hist:0.371,econ:0.436,hum:0.751,sport:0.480,traj:0.359},
+  'Qatar':          {hist:0.053,econ:0.488,hum:0.669,sport:0.690,traj:0.607},
+  'Spain':          {hist:0.371,econ:0.397,hum:0.631,sport:0.465,traj:0.403},
+  'Switzerland':    {hist:0.151,econ:0.554,hum:0.712,sport:0.480,traj:0.419},
+  'Argentina':      {hist:0.691,econ:0.096,hum:0.592,sport:0.415,traj:0.239},
+  'Netherlands':    {hist:0.151,econ:0.447,hum:0.711,sport:0.496,traj:0.446},
+  'Paraguay':       {hist:0.088,econ:0.310,hum:0.609,sport:0.378,traj:0.925},
+  'Mexico':         {hist:0.088,econ:0.306,hum:0.822,sport:0.450,traj:0.589},
+  'Australia':      {hist:0.077,econ:0.450,hum:0.695,sport:0.386,traj:0.592},
+  'Sweden':         {hist:0.164,econ:0.402,hum:0.637,sport:0.511,traj:0.409},
+  'South Korea':    {hist:0.138,econ:0.382,hum:0.737,sport:0.371,traj:0.519},
+  'Norway':         {hist:0.051,econ:0.512,hum:0.697,sport:0.526,traj:0.319},
+  'Scotland':       {hist:0.112,econ:0.436,hum:0.685,sport:0.480,traj:0.359},
+  'Belgium':        {hist:0.151,econ:0.407,hum:0.666,sport:0.435,traj:0.328},
+  'Saudi Arabia':   {hist:0.100,econ:0.371,hum:0.669,sport:0.538,traj:0.329},
+  'Czechia':        {hist:0.077,econ:0.337,hum:0.677,sport:0.465,traj:0.438},
+  'Croatia':        {hist:0.088,econ:0.355,hum:0.648,sport:0.465,traj:0.424},
+  'Curacao':        {hist:0.086,econ:0.371,hum:0.702,sport:0.309,traj:0.459},
+  'Japan':          {hist:0.112,econ:0.364,hum:0.682,sport:0.295,traj:0.459},
+  'Canada':         {hist:0.057,econ:0.428,hum:0.666,sport:0.434,traj:0.298},
+  'Austria':        {hist:0.100,econ:0.381,hum:0.654,sport:0.429,traj:0.278},
+  'Portugal':       {hist:0.112,econ:0.343,hum:0.645,sport:0.435,traj:0.306},
+  'New Zealand':    {hist:0.053,econ:0.386,hum:0.682,sport:0.282,traj:0.447},
+  'Bosnia-Herzegovina':{hist:0.051,econ:0.293,hum:0.549,sport:0.404,traj:0.568},
+  'Ivory Coast':    {hist:0.086,econ:0.333,hum:0.484,sport:0.229,traj:0.713},
+  'Morocco':        {hist:0.077,econ:0.296,hum:0.520,sport:0.250,traj:0.718},
+  'Turkiye':        {hist:0.100,econ:0.299,hum:0.602,sport:0.420,traj:0.379},
+  'Uzbekistan':     {hist:0.053,econ:0.337,hum:0.607,sport:0.270,traj:0.544},
+  'Algeria':        {hist:0.057,econ:0.297,hum:0.506,sport:0.250,traj:0.724},
+  'Iran':           {hist:0.077,econ:0.280,hum:0.493,sport:0.280,traj:0.657},
+  'Senegal':        {hist:0.057,econ:0.332,hum:0.456,sport:0.238,traj:0.697},
+  'DR Congo':       {hist:0.053,econ:0.327,hum:0.426,sport:0.223,traj:0.761},
+  'Jordan':         {hist:0.053,econ:0.268,hum:0.454,sport:0.258,traj:0.728},
+  'Ghana':          {hist:0.057,econ:0.311,hum:0.483,sport:0.229,traj:0.593},
+  'Colombia':       {hist:0.077,econ:0.268,hum:0.573,sport:0.409,traj:0.292},
+  'Cape Verde':     {hist:0.053,econ:0.356,hum:0.476,sport:0.238,traj:0.493},
+  'Panama':         {hist:0.053,econ:0.321,hum:0.599,sport:0.269,traj:0.315},
+  'Egypt':          {hist:0.066,econ:0.255,hum:0.468,sport:0.275,traj:0.518},
+  'Tunisia':        {hist:0.077,econ:0.248,hum:0.442,sport:0.238,traj:0.539},
+  'South Africa':   {hist:0.051,econ:0.230,hum:0.406,sport:0.260,traj:0.629},
+  'Ecuador':        {hist:0.057,econ:0.205,hum:0.569,sport:0.390,traj:0.237},
+  'Iraq':           {hist:0.053,econ:0.214,hum:0.418,sport:0.249,traj:0.405},
+  'Haiti':          {hist:0.053,econ:0.128,hum:0.350,sport:0.260,traj:0.561}
+});
+
+class C5SModel {
+  predict(h, a) {
+    const hs = C5S_SCORES[h] ?? 0.10;
+    const as = C5S_SCORES[a] ?? 0.10;
+    const tot = hs + as;
+    const hw0 = hs / tot;
+    const aw0 = as / tot;
+    // Draw floor 0.18: structural models lack fatigue/momentum signal
+    // so they see slightly more draws than form-based models
+    const DRAW_FLOOR = 0.18;
+    let hw, aw, dr;
+    if (1 - hw0 - aw0 >= DRAW_FLOOR) {
+      dr = 1 - hw0 - aw0; hw = hw0; aw = aw0;
+    } else {
+      dr = DRAW_FLOOR;
+      const pool = 1 - DRAW_FLOOR;
+      hw = hw0 / (hw0 + aw0) * pool;
+      aw = aw0 / (hw0 + aw0) * pool;
+    }
+    const avgG = 2.74;
+    return {
+      homeWin: hw, draw: dr, awayWin: aw,
+      predHome: Math.round(avgG * hw / (hw + aw)),
+      predAway: Math.round(avgG * aw / (hw + aw)),
+      hScore: hs, aScore: as
+    };
+  }
+  score(t) { return C5S_SCORES[t] ?? 0.10; }
+  dims(t)  { return C5S_DIMS[t]  ?? null;  }
+  update() {} // structural model — no in-tournament update
+}
+
+// ─────────────────────────────────────────────
+// ENSEMBLE (6 models)
+// Weights recalibrated for v8: C5S adds structural signal
+// independent from all football-result-based models.
+// PBE 0.25 + ELO 0.22 + POI 0.20 + MKT 0.15 + C5S 0.18 = 1.00
+// ─────────────────────────────────────────────
+const ENS_W={pbe:0.25,elo:0.22,poi:0.20,mkt:0.15,c5s:0.18};
+function ensemble(pbe,elo,poi,mkt,c5s){
+  const hw=pbe.homeWin*ENS_W.pbe+elo.homeWin*ENS_W.elo+poi.homeWin*ENS_W.poi+mkt.homeWin*ENS_W.mkt+c5s.homeWin*ENS_W.c5s;
+  const dr=pbe.draw*ENS_W.pbe+elo.draw*ENS_W.elo+poi.draw*ENS_W.poi+mkt.draw*ENS_W.mkt+c5s.draw*ENS_W.c5s;
+  const aw=pbe.awayWin*ENS_W.pbe+elo.awayWin*ENS_W.elo+poi.awayWin*ENS_W.poi+mkt.awayWin*ENS_W.mkt+c5s.awayWin*ENS_W.c5s;
+  const ph=Math.round(pbe.predHome*ENS_W.pbe+elo.predHome*ENS_W.elo+poi.predHome*ENS_W.poi+mkt.predHome*ENS_W.mkt+c5s.predHome*ENS_W.c5s);
+  const pa=Math.round(pbe.predAway*ENS_W.pbe+elo.predAway*ENS_W.elo+poi.predAway*ENS_W.poi+mkt.predAway*ENS_W.mkt+c5s.predAway*ENS_W.c5s);
+  return{homeWin:hw,draw:dr,awayWin:aw,predHome:ph,predAway:pa};
+}
+
+// ─────────────────────────────────────────────
+// REPLAY ENGINE — chronological, no lookahead
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// REPLAY ENGINE v9 — Sequential no-lookahead
+//
+// Architecture:
+//   runReplay(schedule) walks all matches in date order.
+//   For each match:
+//     1. SNAPSHOT current model state → freeze as prediction
+//        (this is what models knew BEFORE this match)
+//     2. If result exists → UPDATE all updatable models
+//        (PBE, ELO, POI, MKT all learn from every result)
+//     3. Cumulative favorite tracker updated after each result
+//
+//   C5S never updates (structural capitals, frozen by design).
+//   POI and MKT now update from results (new in v9).
+//
+//   For future matches: snapshot reflects ALL prior results.
+//   This is the correct no-lookahead sequential prediction.
+// ─────────────────────────────────────────────
+class ReplayEngine {
+  constructor(){
+    this.pbe = new PBEModel();
+    this.elo = new ELOModel();
+    this.poi = new PoissonModel();
+    this.mkt = new MarketModel();
+    this.c5s = new C5SModel();
+    this.records   = {};   // matchKey → {frozen, actual}
+    this.teamGoals = {};   // standings table
+    this.cumFav    = {};   // cumulative favorite-correct tracker per algo
+    for(const t in TEAMS){
+      this.teamGoals[t]={gf:0,ga:0,gd:0,mp:0,w:0,d:0,l:0,pts:0};
+    }
+    const ALGOS=['pbe','elo','poi','mkt','c5s','ens'];
+    ALGOS.forEach(k=>{this.cumFav[k]={correct:0,total:0,draws:0}});
+  }
+
+  matchKey(m){return m.date+'|'+m.h+'|'+m.a}
+
+  // ── Main entry point ──────────────────────────────────────────
+  runReplay(schedule){
+    // Reset
+    this.pbe=new PBEModel();
+    this.elo=new ELOModel();
+    this.poi=new PoissonModel();
+    this.mkt=new MarketModel();
+    // c5s never resets — structural
+    this.records={};
+    this.teamGoals={};
+    this.cumFav={};
+    for(const t in TEAMS){
+      this.teamGoals[t]={gf:0,ga:0,gd:0,mp:0,w:0,d:0,l:0,pts:0};
+    }
+    const ALGOS=['pbe','elo','poi','mkt','c5s','ens'];
+    ALGOS.forEach(k=>{this.cumFav[k]={correct:0,total:0,draws:0}});
+
+    // Sort chronologically, preserve same-day order
+    const ordered=[...schedule]
+      .map((m,i)=>({...m,_i:i}))
+      .sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a._i-b._i);
+
+    for(const m of ordered){
+      if(!knownTeam(m.h)||!knownTeam(m.a)) continue;
+
+      // 1) SNAPSHOT — predict using current (pre-match) model state
+      const pb=this.pbe.predict(m.h,m.a);
+      const el=this.elo.predict(m.h,m.a);
+      const po=this.poi.predict(m.h,m.a);
+      const mk=this.mkt.predict(m.h,m.a);
+      const c5=this.c5s.predict(m.h,m.a);
+      const en=ensemble(pb,el,po,mk,c5);
+      const key=this.matchKey(m);
+      this.records[key]={
+        frozen:{pbe:pb,elo:el,poi:po,mkt:mk,c5s:c5,ens:en},
+        actual:null,
+        matchRef:m
+      };
+
+      // 2) UPDATE if result is available
+      if(m.hs!==undefined&&m.hs!==null&&m.as!==undefined&&m.as!==null){
+        const hg=m.hs,ag=m.as;
+        this.records[key].actual={hg,ag};
+        // Update all updatable models
+        this.pbe.update(m.h,m.a,hg,ag);
+        this.elo.update(m.h,m.a,hg,ag);
+        this.poi.update(m.h,m.a,hg,ag);
+        this.mkt.update(m.h,m.a,hg,ag);
+        // C5S: no update
+        // Update standings
+        this._updateStandings(m.h,m.a,hg,ag);
+        // Update cumulative favorite tracker
+        this._trackFavorite({pbe:pb,elo:el,poi:po,mkt:mk,c5s:c5,ens:en},m.h,hg,ag);
+      }
+    }
+  }
+
+  _updateStandings(h,a,hg,ag){
+    const ht=this.teamGoals[h]??{gf:0,ga:0,gd:0,mp:0,w:0,d:0,l:0,pts:0};
+    const at=this.teamGoals[a]??{gf:0,ga:0,gd:0,mp:0,w:0,d:0,l:0,pts:0};
+    this.teamGoals[h]=ht;this.teamGoals[a]=at;
+    ht.mp++;at.mp++;
+    ht.gf+=hg;ht.ga+=ag;at.gf+=ag;at.ga+=hg;
+    ht.gd=ht.gf-ht.ga;at.gd=at.gf-at.ga;
+    if(hg>ag){ht.w++;ht.pts+=3;at.l++;}
+    else if(hg<ag){at.w++;at.pts+=3;ht.l++;}
+    else{ht.d++;at.d++;ht.pts++;at.pts++;}
+  }
+
+  _trackFavorite(preds,home,hg,ag){
+    const actual=hg>ag?'H':hg<ag?'A':'D';
+    for(const k of ['pbe','elo','poi','mkt','c5s','ens']){
+      const p=preds[k]; if(!p) continue;
+      const cf=this.cumFav[k];
+      cf.total++;
+      if(actual==='D'){cf.draws++;continue;}
+      const fav=p.homeWin>p.awayWin&&p.homeWin>p.draw?'H':
+                p.awayWin>p.homeWin&&p.awayWin>p.draw?'A':'D';
+      if(fav===actual) cf.correct++;
+    }
+  }
+
+  // Called by fetchResults with API data
+  applyResults(results){
+    // Inject scores into SCHEDULE-equivalent objects and re-run replay
+    const withScores=SCHEDULE.map(m=>{
+      const r=results.find(x=>x.match.h===m.h&&x.match.a===m.a&&x.match.date===m.date);
+      return r?{...m,hs:r.hg,as:r.ag}:{...m};
+    });
+    this.runReplay(withScores);
+  }
+
+  rec(m){return this.records[this.matchKey(m)]||null}
+
+  ensScore(t){
+    const pb=this.pbe.score(t);
+    const el=(this.elo.ratings[t]||1500)/2000;
+    const po=Math.min((this.poi.att[t]??TEAMS[t]?.att??1.0)/1.6,1);
+    const mk=TEAMS[t]?(1-TEAMS[t].rank/150):0.5;
+    const c5=this.c5s.score(t);
+    return ENS_W.pbe*pb+ENS_W.elo*el+ENS_W.poi*po+ENS_W.mkt*mk+ENS_W.c5s*c5;
+  }
+}
+
+// ─────────────────────────────────────────────
+// APP STATE
+// ─────────────────────────────────────────────
+let engine=new ReplayEngine();
+let resultsLoaded=false;
+let currentDate='2026-06-17';
+// Active algorithm filter — PBE and C5S pre-applied by default
+let activeAlgos=new Set(['pbe','c5s']);
+const DATES=[...new Set(SCHEDULE.map(m=>m.date))].sort();
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init(){
+  engine.runReplay(SCHEDULE);
+  bindTabs();
+  bindUpdate();
+  bindAlgoFilter();
+  renderDatePicker();
+  renderMatches();
+  renderGroupSelector();
+  renderStandings('A');
+  renderRanking();
+  renderAccuracy();
+  buildAndRenderBracket();
+}
+
+// ─────────────────────────────────────────────
+// API FETCH
+// ─────────────────────────────────────────────
+async function fetchResults(){
+  const btn=document.getElementById('updateBtn');
+  const statusEl=document.getElementById('apiStatus');
+  btn.classList.add('busy');btn.disabled=true;
+  document.getElementById('btnText').textContent='Fetching…';
+  statusEl.className='api-status loading';
+  statusEl.textContent='Connecting to openfootball API…';
+
+  try{
+    const res=await fetch(API_URL,{cache:'no-cache'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+
+    // Parse results from API
+    const results=[];
+    for(const m of (data.matches||[])){
+      if(!m.score||!m.score.ft)continue;
+      const h=normalise(m.team1),a=normalise(m.team2);
+      if(!h||!a)continue;
+      const [hg,ag]=m.score.ft;
+      if(typeof hg!=='number'||typeof ag!=='number')continue;
+      // Find matching schedule entry
+      const sched=SCHEDULE.find(s=>s.h===h&&s.a===a&&s.date===m.date);
+      if(!sched)continue;
+      results.push({match:sched,hg,ag});
+    }
+
+    // Reset engine and replay sequentially with results injected
+    engine=new ReplayEngine();
+    engine.applyResults(results);
+    resultsLoaded=true;
+
+    const n=results.length;
+    statusEl.className='api-status ok';
+    statusEl.textContent=`✅ ${n} result${n!==1?'s':''} loaded from openfootball · ${new Date().toLocaleTimeString()}`;
+    showToast(`✅ ${n} official results applied`);
+  }catch(e){
+    statusEl.className='api-status err';
+    statusEl.textContent=`❌ Fetch failed: ${esc(e.message)} — check network / CORS`;
+    showToast('❌ Could not reach API. Results unchanged.');
+  }finally{
+    btn.classList.remove('busy');btn.disabled=false;
+    document.getElementById('btnText').textContent='🔄 Fetch Official Results';
+    renderMatches();renderRanking();renderAccuracy();buildAndRenderBracket();
+    const ac=document.querySelector('.gchip.active');
+    if(ac)renderStandings(ac.dataset.g);
+  }
+}
+
+// ─────────────────────────────────────────────
+// UI BINDINGS
+// ─────────────────────────────────────────────
+function bindTabs(){
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      const sec=document.getElementById(btn.dataset.tab);
+      if(sec)sec.classList.add('active');
+      const dp=document.getElementById('dateRow');
+      if(dp)dp.style.display=btn.dataset.tab==='matches'?'flex':'none';
+    });
+  });
+}
+function bindUpdate(){
+  document.getElementById('updateBtn').addEventListener('click',fetchResults);
+}
+
+// ─────────────────────────────────────────────
+// ALGO FILTER
+// ─────────────────────────────────────────────
+function bindAlgoFilter(){
+  document.querySelectorAll('.algo-toggle').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const algo=btn.dataset.algo;
+      if(activeAlgos.has(algo)){
+        // Always keep at least one algo active
+        if(activeAlgos.size>1){
+          activeAlgos.delete(algo);
+          btn.classList.remove('active');
+        }
+      } else {
+        activeAlgos.add(algo);
+        btn.classList.add('active');
+      }
+      // Re-render matches to apply filter
+      renderMatches();
+    });
+  });
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// ─────────────────────────────────────────────
+// DATE PICKER
+// ─────────────────────────────────────────────
+function renderDatePicker(){
+  const row=document.getElementById('dateRow');
+  row.innerHTML='';
+  DATES.forEach(d=>{
+    const chip=document.createElement('div');
+    chip.className='dchip';
+    const past=d<currentDate,today=d===currentDate;
+    if(today)chip.classList.add('today-mark','active');
+    else if(past)chip.classList.add('past');
+    else chip.classList.add('future');
+    const dt=new Date(d+'T12:00:00');
+    chip.textContent=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    chip.addEventListener('click',()=>{
+      currentDate=d;
+      document.querySelectorAll('.dchip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      renderMatches();
+    });
+    row.appendChild(chip);
+  });
+}
+
+// ─────────────────────────────────────────────
+// MATCH RENDERER
+// ─────────────────────────────────────────────
+function pct(v){return(v*100).toFixed(1)+'%'}
+function fmtP(v){return(v*100).toFixed(1)}
+
+function renderAlgoRow(name,color,sub,pred,actual,revealed){
+  const fav=pred.homeWin>pred.awayWin&&pred.homeWin>pred.draw?'H':pred.awayWin>pred.homeWin&&pred.awayWin>pred.draw?'A':'D';
+  let html=`<div class="algo-row">
+    <div class="algo-label${name==='ENS'?' is-ens':''}">
+      <div class="alname" style="color:${color}">${esc(name)}</div>
+      <div class="alsub">${esc(sub)}</div>
+    </div>
+    <div class="algo-data">`;
+
+  if(actual&&revealed){
+    // Show compare boxes
+    html+=`<div class="vs-compare">
+      <div class="compare-cell pred"><div class="cl">Pred</div><div class="cv">${pred.predHome}-${pred.predAway}</div></div>
+      <div style="font-size:0.7rem;color:var(--muted)">→</div>
+      <div class="compare-cell actual"><div class="cl">Actual</div><div class="cv">${actual.hg}-${actual.ag}</div></div>`;
+    const dH=Math.abs(actual.hg-pred.predHome),dA=Math.abs(actual.ag-pred.predAway);
+    const tot=dH+dA;
+    const cls=tot===0?'diff-exact':tot<=2?'diff-close':'diff-off';
+    const lbl=tot===0?'✓ Exact':tot<=2?`±${tot}`:`Δ${tot}`;
+    html+=`<span class="diff-chip ${cls}">${lbl}</span></div>`;
+  } else {
+    // Predicted score
+    html+=`<div class="score-pred-row">
+      <div class="pred-score-pill">
+        <span class="pred-score-num" style="color:var(--accent)">${pred.predHome}</span>
+        <span class="pred-score-sep">–</span>
+        <span class="pred-score-num" style="color:var(--accent2)">${pred.predAway}</span>
+      </div>
+      <span class="pred-vs-label">${fav==='H'?'Home fav':fav==='A'?'Away fav':'Draw fav'}</span>
+    </div>`;
+  }
+
+  // Always show probability bars
+  html+=`<div class="prob-row">
+    <div class="prob-bar-wrap">
+      <div class="pb-h" style="width:${fmtP(pred.homeWin)}%;background:${color}"></div>
+      <div class="pb-d" style="width:${fmtP(pred.draw)}%"></div>
+      <div class="pb-a" style="width:${fmtP(pred.awayWin)}%;background:var(--accent2)"></div>
+    </div>
+    <div class="prob-nums">
+      <span class="pn home">${fmtP(pred.homeWin)}%</span>
+      <span class="pn draw">${fmtP(pred.draw)}%</span>
+      <span class="pn away">${fmtP(pred.awayWin)}%</span>
+    </div>
+  </div>`;
+
+  html+=`</div></div>`;
+  return html;
+}
+
+function renderMatches(){
+  const list=document.getElementById('matchList');
+  const day=SCHEDULE.filter(m=>m.date===currentDate);
+  if(!day.length){list.innerHTML='<div class="empty">No matches on this date.</div>';return}
+  list.innerHTML='';
+  for(const m of day){
+    if(!knownTeam(m.h)||!knownTeam(m.a))continue;
+    const rec=engine.rec(m);
+    const actual=rec?rec.actual:null;
+    const revealed=resultsLoaded&&actual!==null;
+    const f=rec?rec.frozen:null;
+
+    const card=document.createElement('div');
+    card.className='match-card';
+
+    // Header
+    let statusHTML;
+    if(!actual)statusHTML=`<span class="status-upcoming">⏳ Upcoming</span>`;
+    else if(revealed)statusHTML=`<span class="status-final">✅ Final</span>`;
+    else statusHTML=`<span class="status-hidden">🔒 Result hidden</span>`;
+
+    let html=`<div class="match-header"><span><span class="grp">Group ${esc(m.grp)}</span></span>${statusHTML}</div>`;
+
+    // Teams + score
+    let scoreHTML;
+    if(revealed&&actual){
+      scoreHTML=`<div class="score-box"><div class="sc">${actual.hg} – ${actual.ag}</div><div class="sc-lbl">Final</div></div>`;
+    } else if(actual&&!revealed){
+      scoreHTML=`<div class="score-box"><div class="sc hidden">? – ?</div><div class="sc-lbl">Hidden</div></div>`;
+    } else {
+      scoreHTML=`<div class="score-box"><div class="sc hidden" style="font-size:0.72rem;letter-spacing:1px">TBD</div><div class="sc-lbl">Upcoming</div></div>`;
+    }
+
+    html+=`<div class="teams-row">
+      <div class="team-side"><span class="flag">${flag(m.h)}</span><span class="tname">${esc(m.h)}</span></div>
+      ${scoreHTML}
+      <div class="team-side away"><span class="tname">${esc(m.a)}</span><span class="flag">${flag(m.a)}</span></div>
+    </div>`;
+
+    // Predictions grid
+    if(f){
+      const ALGO_DEFS=[
+        {k:'pbe', color:'var(--pbe)', sub:'Bayesian Ensemble',    pred:f.pbe},
+        {k:'elo', color:'var(--elo)', sub:'Elo Rating',           pred:f.elo},
+        {k:'poi', color:'var(--poi)', sub:'Poisson Goals',        pred:f.poi},
+        {k:'mkt', color:'var(--mkt)', sub:'Market Implied',       pred:f.mkt},
+        {k:'c5s', color:'var(--c5s)', sub:'5 Capitals Score',     pred:f.c5s},
+        {k:'ens', color:'var(--ens)', sub:'★ Ensemble (6)',       pred:f.ens},
+      ];
+      const visibleRows=ALGO_DEFS
+        .filter(a=>activeAlgos.has(a.k))
+        .map(a=>renderAlgoRow(a.k.toUpperCase(),a.color,a.sub,a.pred,actual,revealed))
+        .join('');
+      const hiddenCount=ALGO_DEFS.length-activeAlgos.size;
+      const hiddenNote=hiddenCount>0
+        ?`<div style="font-size:0.56rem;color:var(--muted);text-align:center;padding:4px 12px">${hiddenCount} model${hiddenCount>1?'s':''} hidden — use filter bar above to show</div>`
+        :'';
+      html+=`<div class="pred-grid">
+        <div class="pred-section-title">🔮 Predictions (each model updated from all prior results)</div>
+        ${visibleRows}${hiddenNote}
+      </div>`;
+    }
+
+    card.innerHTML=html;
+    list.appendChild(card);
+  }
+}
+
+// ─────────────────────────────────────────────
+// GROUP STANDINGS
+// ─────────────────────────────────────────────
+function renderGroupSelector(){
+  const sel=document.getElementById('grpSelector');
+  sel.innerHTML='';
+  'ABCDEFGHIJKL'.split('').forEach((g,i)=>{
+    const c=document.createElement('div');
+    c.className='gchip'+(i===0?' active':'');
+    c.textContent='Grp '+g;c.dataset.g=g;
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('.gchip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');renderStandings(g);
+    });
+    sel.appendChild(c);
+  });
+}
+
+function renderStandings(g){
+  const teams=SCHEDULE.filter(m=>m.grp===g).flatMap(m=>[m.h,m.a]);
+  const unique=[...new Set(teams)].filter(knownTeam);
+  const rows=unique.map(t=>{
+    const s=engine.teamGoals[t]||{mp:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0};
+    return{t,ens:(engine.ensScore(t)*100).toFixed(0),...s};
+  }).sort((a,b)=>(b.pts-a.pts)||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf);
+  let html=`<div class="card"><table class="standings-tbl"><thead><tr>
+    <th style="text-align:left">Team</th><th>MP</th><th>W</th><th>D</th><th>L</th>
+    <th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th style="color:var(--gold)">ENS</th>
+  </tr></thead><tbody>`;
+  rows.forEach((r,i)=>{
+    const pc=i<2?'pos-q':'pos-e';
+    html+=`<tr>
+      <td><span class="${pc}">${i+1}</span> ${flag(r.t)} ${esc(r.t)}</td>
+      <td>${r.mp}</td><td>${r.w}</td><td>${r.d||0}</td><td>${r.l||0}</td>
+      <td style="color:var(--success)">${r.gf||0}</td>
+      <td style="color:var(--danger)">${r.ga||0}</td>
+      <td>${(r.gd||0)>0?'+':''}${r.gd||0}</td>
+      <td class="pts-col">${r.pts||0}</td>
+      <td class="ens-col">${r.ens}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('standingsContent').innerHTML=html;
+}
+
+// ─────────────────────────────────────────────
+// RANKINGS
+// ─────────────────────────────────────────────
+function renderRanking(){
+  const teams=Object.keys(TEAMS).map(t=>{
+    const st=engine.pbe.state[t]||{};
+    return {
+      t,
+      ens:engine.ensScore(t),
+      pbe:engine.pbe.score(t),
+      histPrior:st.histPrior??st.origPrior??0,
+      eqvNorm:st.eqvNorm??normEV(t),
+      eqvUSD:EQV_USD_M[t]??0,
+      elo:(engine.elo.ratings[t]||1500)/2000,
+      poi:Math.min((engine.poi.att[t]??TEAMS[t]?.att??1.0)/1.6,1),
+      mkt:1-TEAMS[t].rank/150,
+      c5s:engine.c5s.score(t)
+    };
+  }).sort((a,b)=>b.ens-a.ens);
+
+  let html='';
+  teams.forEach((r,i)=>{
+    const nc=i===0?'rn-gold':i===1?'rn-silver':i===2?'rn-bronze':'rn-norm';
+    const dims=engine.c5s.dims(r.t);
+    // EQV delta: how much did EQV shift the prior vs pure history
+    const eqvDelta = r.pbe - r.histPrior; // blended - historical
+    const eqvDeltaSign = eqvDelta >= 0 ? '+' : '';
+    const eqvDeltaColor = eqvDelta > 0.005 ? 'var(--success)' : eqvDelta < -0.005 ? 'var(--danger)' : 'var(--muted)';
+    const eqvChip = `<span style="font-size:0.5rem;padding:1px 5px;border-radius:3px;
+      background:rgba(52,211,153,0.1);color:${eqvDeltaColor};border:1px solid rgba(52,211,153,0.2)">
+      💰EQV${eqvDeltaSign}${(eqvDelta*100).toFixed(1)}pp · $${r.eqvUSD}M</span>`;
+    const dimsHtml=dims
+      ? `<div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap">
+          ${[['H',dims.hist,'#f87171'],['E',dims.econ,'#34d399'],['Hm',dims.hum,'#60a5fa'],['S',dims.sport,'var(--c5s)'],['T',dims.traj,'var(--gold)']].map(([l,v,c])=>
+            `<span style="font-size:0.5rem;padding:1px 4px;border-radius:3px;background:rgba(255,255,255,0.06);color:${c}">${l}:${(v*100).toFixed(0)}</span>`
+          ).join('')}
+          ${eqvChip}
+         </div>`
+      : `<div style="display:flex;gap:3px;margin-top:3px;flex-wrap:wrap">${eqvChip}</div>`;
+    html+=`<div class="rank-item">
+      <div class="rank-num ${nc}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-team">${flag(r.t)} ${esc(r.t)}</div>
+        <div class="rank-sub">PBE ${(r.pbe*100).toFixed(0)} · ELO ${(r.elo*100).toFixed(0)} · POI ${(r.poi*100).toFixed(0)} · MKT ${(r.mkt*100).toFixed(0)} · <span style="color:var(--c5s)">C5S ${(r.c5s*100).toFixed(0)}</span></div>
+        ${dimsHtml}
+      </div>
+      <div class="rank-bars">
+        <div class="mini-bar-row"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${(r.pbe*100).toFixed(0)}%;background:var(--pbe)"></div></div><span class="mini-bar-val">${(r.pbe*100).toFixed(0)}</span></div>
+        <div class="mini-bar-row"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${(r.elo*100).toFixed(0)}%;background:var(--elo)"></div></div><span class="mini-bar-val">${(r.elo*100).toFixed(0)}</span></div>
+        <div class="mini-bar-row"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.min(r.c5s*100,100).toFixed(0)}%;background:var(--c5s)"></div></div><span class="mini-bar-val">${(r.c5s*100).toFixed(0)}</span></div>
+      </div>
+      <div class="rank-ens">${(r.ens*100).toFixed(1)}</div>
+    </div>`;
+  });
+  document.getElementById('rankList').innerHTML=html;
+}
+
+// ─────────────────────────────────────────────
+// ACCURACY
+// ─────────────────────────────────────────────
+function renderAccuracy(){
+  const el=document.getElementById('accContent');
+  if(!resultsLoaded){
+    el.innerHTML='<div class="empty">Fetch official results first to see accuracy metrics.</div>';
+    return;
+  }
+  const played=Object.values(engine.records).filter(r=>r.actual!==null);
+  if(!played.length){el.innerHTML='<div class="empty">No completed matches found in API data.</div>';return}
+
+  const ALGO_META={
+    pbe:{name:'PBE',color:'var(--pbe)',sub:'Bayesian · updates from results'},
+    elo:{name:'ELO',color:'var(--elo)',sub:'Elo · updates from results'},
+    poi:{name:'POI',color:'var(--poi)',sub:'Poisson · updates from results'},
+    mkt:{name:'MKT',color:'var(--mkt)',sub:'Market · updates from form'},
+    c5s:{name:'C5S',color:'var(--c5s)',sub:'5 Capitals · structural, fixed'},
+    ens:{name:'ENS ★',color:'var(--ens)',sub:'Ensemble · all 5 models'}
+  };
+  const algos=['pbe','elo','poi','mkt','c5s','ens'];
+
+  // Recompute per-algo stats from frozen predictions + actual results
+  const stats={};
+  algos.forEach(k=>{stats[k]={favOk:0,exact:0,close:0,tot:0,drawTot:0}});
+
+  played.forEach(r=>{
+    const{hg,ag}=r.actual;
+    const res=hg>ag?'H':hg<ag?'A':'D';
+    algos.forEach(k=>{
+      const p=r.frozen[k];if(!p)return;
+      stats[k].tot++;
+      if(res==='D'){stats[k].drawTot++;return;}
+      const fav=p.homeWin>p.awayWin&&p.homeWin>p.draw?'H':
+                p.awayWin>p.homeWin&&p.awayWin>p.draw?'A':'D';
+      if(fav===res)stats[k].favOk++;
+      const dH=Math.abs(hg-p.predHome),dA=Math.abs(ag-p.predAway);
+      if(dH===0&&dA===0)stats[k].exact++;
+      else if(dH+dA<=2)stats[k].close++;
+    });
+  });
+
+  const tot=played.length;
+  const nonDrawTot=tot-(stats.ens.drawTot||0);
+
+  // ── Cumulative tracker header ──────────────────────────────────────
+  // Use engine.cumFav for the running totals built during sequential replay
+  const cf=engine.cumFav;
+  let html=`
+  <div style="font-size:0.62rem;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(0,212,255,0.05);border-radius:7px;border:1px solid rgba(0,212,255,0.15)">
+    <strong style="color:var(--accent)">📈 Dynamic scoring:</strong>
+    Each prediction below used model state built from <em>all prior results</em> —
+    not a fixed Jun 10 baseline. This is the valid no-lookahead accuracy score.
+  </div>
+
+  <div class="acc-grid">
+    <div class="acc-box"><div class="av">${tot}</div><div class="al">Results loaded</div></div>
+    <div class="acc-box"><div class="av" style="color:var(--gold)">${nonDrawTot>0?(cf.ens?.correct/Math.max(cf.ens?.total-cf.ens?.draws,1)*100).toFixed(0):0}%</div><div class="al">ENS fav correct<br><span style="font-size:0.5rem">(non-draw, dynamic)</span></div></div>
+    <div class="acc-box"><div class="av" style="color:var(--poi)">${(stats.ens.exact/Math.max(stats.ens.tot,1)*100).toFixed(0)}%</div><div class="al">ENS exact score</div></div>
+  </div>
+
+  <div style="font-size:0.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 6px">Per-Algorithm Accuracy (dynamic predictions)</div>
+  <div class="acc-algo-grid">`;
+
+  algos.forEach(k=>{
+    const s=stats[k];
+    const m=ALGO_META[k];
+    const c=cf[k]||{correct:0,total:0,draws:0};
+    const nonDraw=Math.max(c.total-c.draws,1);
+    const dynPct=c.total>0?(c.correct/nonDraw*100).toFixed(0):'-';
+    html+=`<div class="acc-algo-box">
+      <div class="aan" style="color:${m.color}">${m.name}</div>
+      <div style="font-size:0.55rem;color:var(--muted);margin-bottom:4px">${m.sub}</div>
+      <div class="aav" style="color:${m.color}">${dynPct}%</div>
+      <div class="aal">Dynamic fav correct</div>
+      <div style="margin-top:4px;font-size:0.6rem;color:var(--muted)">
+        Exact ${s.exact}/${s.tot} · ±1 ${s.close}/${s.tot}
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // ── Per-match log with all 6 model results ─────────────────────
+  html+=`<div style="margin-top:10px">
+    <div class="card-title" style="font-size:0.65rem">📋 Match-by-Match Log · ${tot} results · (most recent first)</div>
+    <div style="font-size:0.58rem;color:var(--muted);margin-bottom:6px">
+      ✓ = ENS predicted winner correct · prediction used model state from all prior matches
+    </div>`;
+
+  const recs=[...played]
+    .map(r=>({r,ref:r.matchRef||SCHEDULE.find(s=>engine.records[s.date+'|'+s.h+'|'+s.a]===r)}))
+    .reverse();
+
+  recs.forEach(({r,ref})=>{
+    if(!ref)return;
+    const{hg,ag}=r.actual;
+    const res=hg>ag?'H':hg<ag?'A':'D';
+    const ensFav=r.frozen.ens.homeWin>r.frozen.ens.awayWin&&r.frozen.ens.homeWin>r.frozen.ens.draw?'H':
+                 r.frozen.ens.awayWin>r.frozen.ens.homeWin&&r.frozen.ens.awayWin>r.frozen.ens.draw?'A':'D';
+    const hit=res!=='D'&&ensFav===res;
+    const isDraw=res==='D';
+
+    // Mini prob bars for each algo
+    let algoBars='';
+    algos.filter(k=>k!=='ens').forEach(k=>{
+      const p=r.frozen[k];if(!p)return;
+      const fav=p.homeWin>p.awayWin&&p.homeWin>p.draw?'H':p.awayWin>p.homeWin&&p.awayWin>p.draw?'A':'D';
+      const ok=!isDraw&&fav===res;
+      const mc=ALGO_META[k];
+      algoBars+=`<span style="font-size:0.52rem;padding:1px 4px;border-radius:3px;
+        background:${ok?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.1)'};
+        color:${ok?'var(--success)':'var(--danger)'}">
+        ${mc.name}${isDraw?'—':ok?'✓':'✗'}
+      </span>`;
+    });
+
+    html+=`<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.7rem">
+        <span><strong>${flag(ref.h)} ${esc(ref.h)}</strong> ${hg}–${ag} <strong>${esc(ref.a)} ${flag(ref.a)}</strong></span>
+        <span style="color:${isDraw?'var(--muted)':hit?'var(--success)':'var(--danger)'};font-weight:800">
+          ${isDraw?'D—':hit?'✓':' ✗'}
+        </span>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${algoBars}</div>
+      <div style="font-size:0.55rem;color:var(--muted);margin-top:3px">
+        ENS pred: ${r.frozen.ens.predHome}-${r.frozen.ens.predAway} ·
+        H:${(r.frozen.ens.homeWin*100).toFixed(0)}% D:${(r.frozen.ens.draw*100).toFixed(0)}% A:${(r.frozen.ens.awayWin*100).toFixed(0)}%
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+
+// ─────────────────────────────────────────────
+// BRACKET RESOLVER — PR1
+// Official FIFA WC 2026 R32 bracket structure.
+// Sources: ESPN/FOX Sports official bracket (Jun 2026),
+//          FIFA.com scores-fixtures page,
+//          sportschedulerpro.com slot labels.
+//
+// DESIGN:
+//   Fixed slots (24): group winners vs runners-up — deterministic.
+//   Variable slots (8): group winners vs best-3rd — resolved via
+//   the FIFA 495-combination lookup table once group stage ends.
+//   R16 onward: winner-feeds, fully dynamic.
+//
+// PR1 scope: BracketResolver + static display.
+// PR2 scope: Monte Carlo simulation over unresolved slots.
+// ─────────────────────────────────────────────
+class BracketResolver {
+
+  // Official R32 fixed slot definitions (FIFA Annex C)
+  // slot: { id, home: slot-descriptor, away: slot-descriptor, date, venue }
+  // slot-descriptor: '1A'=winner grp A, '2B'=runner-up grp B,
+  //                  '3ABCDF'=best-3rd from one of those groups (FIFA matrix)
+  static R32_SLOTS = [
+    // ── Left half of bracket ──────────────────────────
+    {id:'R32-M73', home:'2A', away:'2B',      date:'2026-06-28', venue:'SoFi Stadium, Los Angeles'},
+    {id:'R32-M74', home:'1E', away:'3ABCDF',  date:'2026-06-29', venue:'Gillette Stadium, Boston'},
+    {id:'R32-M75', home:'1C', away:'2F',      date:'2026-06-29', venue:'NRG Stadium, Houston'},
+    {id:'R32-M76', home:'1F', away:'2C',      date:'2026-06-30', venue:'Estadio BBVA, Monterrey'},
+    {id:'R32-M77', home:'2E', away:'2I',      date:'2026-06-30', venue:'AT&T Stadium, Dallas'},
+    {id:'R32-M78', home:'1I', away:'3CDFGH',  date:'2026-06-30', venue:'MetLife Stadium, New Jersey'},
+    {id:'R32-M79', home:'1A', away:'3CEFHI',  date:'2026-07-01', venue:'Estadio Azteca, Mexico City'},
+    {id:'R32-M80', home:'1L', away:'3EHIJK',  date:'2026-07-01', venue:'Mercedes-Benz Stadium, Atlanta'},
+    // ── Right half of bracket ─────────────────────────
+    {id:'R32-M81', home:'1G', away:'3AEHIJ',  date:'2026-07-01', venue:'Lumen Field, Seattle'},
+    {id:'R32-M82', home:'1D', away:'3BEFIJ',  date:'2026-07-02', venue:'Levi\'s Stadium, San Francisco'},
+    {id:'R32-M83', home:'2K', away:'2L',      date:'2026-07-02', venue:'BMO Field, Toronto'},
+    {id:'R32-M84', home:'1H', away:'2J',      date:'2026-07-02', venue:'Hard Rock Stadium, Miami'},
+    {id:'R32-M85', home:'1J', away:'2H',      date:'2026-07-03', venue:'Arrowhead Stadium, Kansas City'},
+    {id:'R32-M86', home:'2D', away:'2G',      date:'2026-07-03', venue:'AT&T Stadium, Dallas'},
+    {id:'R32-M87', home:'1B', away:'3EFGIJ',  date:'2026-07-03', venue:'BC Place, Vancouver'},
+    {id:'R32-M88', home:'1K', away:'3DEIJL',  date:'2026-07-03', venue:'Arrowhead Stadium, Kansas City'},
+  ];
+
+  // R16 feeds: which two R32 match winners meet in R16
+  static R16_FEEDS = [
+    {id:'R16-M89', from:['R32-M73','R32-M74'], date:'2026-07-04', venue:'SoFi Stadium, Los Angeles'},
+    {id:'R16-M90', from:['R32-M75','R32-M76'], date:'2026-07-04', venue:'MetLife Stadium, New Jersey'},
+    {id:'R16-M91', from:['R32-M77','R32-M78'], date:'2026-07-05', venue:'NRG Stadium, Houston'},
+    {id:'R16-M92', from:['R32-M79','R32-M80'], date:'2026-07-05', venue:'AT&T Stadium, Dallas'},
+    {id:'R16-M93', from:['R32-M81','R32-M82'], date:'2026-07-06', venue:'Lumen Field, Seattle'},
+    {id:'R16-M94', from:['R32-M83','R32-M84'], date:'2026-07-06', venue:'Mercedes-Benz Stadium, Atlanta'},
+    {id:'R16-M95', from:['R32-M85','R32-M86'], date:'2026-07-07', venue:'Hard Rock Stadium, Miami'},
+    {id:'R16-M96', from:['R32-M87','R32-M88'], date:'2026-07-07', venue:'BMO Field, Toronto'},
+  ];
+
+  static QF_FEEDS = [
+    {id:'QF-M97',  from:['R16-M89','R16-M90'], date:'2026-07-09', venue:'MetLife Stadium, New Jersey'},
+    {id:'QF-M98',  from:['R16-M91','R16-M92'], date:'2026-07-10', venue:'AT&T Stadium, Dallas'},
+    {id:'QF-M99',  from:['R16-M93','R16-M94'], date:'2026-07-10', venue:'SoFi Stadium, Los Angeles'},
+    {id:'QF-M100', from:['R16-M95','R16-M96'], date:'2026-07-11', venue:'Mercedes-Benz Stadium, Atlanta'},
+  ];
+
+  static SF_FEEDS = [
+    {id:'SF-M101', from:['QF-M97','QF-M98'],   date:'2026-07-14', venue:'MetLife Stadium, New Jersey'},
+    {id:'SF-M102', from:['QF-M99','QF-M100'],  date:'2026-07-15', venue:'AT&T Stadium, Dallas'},
+  ];
+
+  static FINAL_FEEDS = [
+    {id:'3P-M103', from:['SF-M101','SF-M102'], date:'2026-07-18', venue:'Hard Rock Stadium, Miami',    label:'3rd Place'},
+    {id:'F-M104',  from:['SF-M101','SF-M102'], date:'2026-07-19', venue:'MetLife Stadium, New Jersey', label:'Final ★'},
+  ];
+
+  // ── Qualifier extraction from standings ──
+  // Returns {winners:{A:team,...}, runners:{A:team,...}, thirds:[{grp,team,pts,gd,gf}...]}
+  static extractQualifiers(teamGoals, schedule) {
+    const groups = 'ABCDEFGHIJKL'.split('');
+    const winners = {}, runners = {}, thirds = [];
+
+    for (const g of groups) {
+      const members = [...new Set(
+        schedule.filter(m => m.grp === g).flatMap(m => [m.h, m.a])
+      )].filter(knownTeam);
+
+      const sorted = members.map(t => {
+        const s = teamGoals[t] || {pts:0,gd:0,gf:0,mp:0};
+        return {t, pts:s.pts||0, gd:s.gd||0, gf:s.gf||0, mp:s.mp||0};
+      }).sort((a,b) => (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
+
+      if (sorted[0]) winners[g]  = sorted[0];
+      if (sorted[1]) runners[g]  = sorted[1];
+      if (sorted[2]) thirds.push({grp:g, ...sorted[2]});
+    }
+
+    // Rank all 3rd-place teams; top 8 advance
+    thirds.sort((a,b) => (b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf));
+    const advancing3 = thirds.slice(0, 8);
+    const advancingGroups = new Set(advancing3.map(t => t.grp));
+
+    return {winners, runners, thirds, advancing3, advancingGroups};
+  }
+
+  // ── Resolve who plays in a given R32 slot ──
+  // descriptor: '1A','2B','3ABCDF'
+  static resolveSlot(descriptor, qualifiers) {
+    if (!qualifiers) return null;
+    const {winners, runners, advancing3, advancingGroups} = qualifiers;
+
+    if (descriptor.startsWith('1')) {
+      const g = descriptor[1];
+      return winners[g] || null;
+    }
+    if (descriptor.startsWith('2')) {
+      const g = descriptor[1];
+      return runners[g] || null;
+    }
+    if (descriptor.startsWith('3')) {
+      // Possible groups listed after '3'
+      const possibleGroups = descriptor.slice(1).split('');
+      // Pick the advancing 3rd from among the listed groups (best ranked first)
+      const candidate = advancing3.find(t => possibleGroups.includes(t.grp));
+      return candidate || null;
+    }
+    return null;
+  }
+
+  // ── Build full bracket tree from group results ──
+  static buildBracket(qualifiers, engine) {
+    const resolved = {}; // matchId -> {home:team|null, away:team|null, winner:team|null}
+
+    // R32: resolve from group results
+    for (const slot of BracketResolver.R32_SLOTS) {
+      const h = BracketResolver.resolveSlot(slot.home, qualifiers);
+      const a = BracketResolver.resolveSlot(slot.away, qualifiers);
+      resolved[slot.id] = {
+        ...slot, round:'R32',
+        homeTeam: h ? h.t : null,
+        awayTeam: a ? a.t : null,
+        homeDesc: slot.home, awayDesc: slot.away,
+        winner: null, // populated when results come in
+        prediction: h && a ? engine.predictForKnockout(h.t, a.t) : null
+      };
+    }
+
+    // R16: TBD until R32 results exist
+    for (const slot of BracketResolver.R16_FEEDS) {
+      resolved[slot.id] = {...slot, round:'R16', homeTeam:null, awayTeam:null, winner:null,
+        homeFrom:slot.from[0], awayFrom:slot.from[1], prediction:null};
+    }
+    for (const slot of BracketResolver.QF_FEEDS) {
+      resolved[slot.id] = {...slot, round:'QF', homeTeam:null, awayTeam:null, winner:null,
+        homeFrom:slot.from[0], awayFrom:slot.from[1], prediction:null};
+    }
+    for (const slot of BracketResolver.SF_FEEDS) {
+      resolved[slot.id] = {...slot, round:'SF', homeTeam:null, awayTeam:null, winner:null,
+        homeFrom:slot.from[0], awayFrom:slot.from[1], prediction:null};
+    }
+    for (const slot of BracketResolver.FINAL_FEEDS) {
+      resolved[slot.id] = {...slot, round:slot.label||'Final', homeTeam:null, awayTeam:null,
+        winner:null, homeFrom:slot.from[0], awayFrom:slot.from[1], prediction:null};
+    }
+
+    return resolved;
+  }
+}
+
+// Extend ReplayEngine with knockout prediction helper
+ReplayEngine.prototype.predictForKnockout = function(h, a) {
+  if (!knownTeam(h) || !knownTeam(a)) return null;
+  const pb = this.pbe.predict(h, a);
+  const el = this.elo.predict(h, a);
+  const po = (new PoissonModel()).predict(h, a);
+  const mk = (new MarketModel()).predict(h, a);
+  const c5 = (new C5SModel()).predict(h, a);
+  const en = ensemble(pb, el, po, mk, c5);
+  return {pbe:pb, elo:el, poi:po, mkt:mk, c5s:c5, ens:en};
+};
+
+// ─────────────────────────────────────────────
+// BRACKET RENDERER
+// ─────────────────────────────────────────────
+let bracketData = null;
+
+function buildAndRenderBracket() {
+  const qualifiers = BracketResolver.extractQualifiers(engine.teamGoals, SCHEDULE);
+  bracketData = BracketResolver.buildBracket(qualifiers, engine);
+  renderBracket('qualifier');
+}
+
+function renderBracket(view) {
+  const el = document.getElementById('bracketContent');
+  el.innerHTML = '';
+
+  // Round selector
+  const rounds = [
+    {id:'qualifier', label:'🏅 Qualifiers'},
+    {id:'R32',       label:'⚔️ Round of 32'},
+    {id:'R16',       label:'🔥 Round of 16'},
+    {id:'QF',        label:'💥 Quarter-finals'},
+    {id:'SF',        label:'🌟 Semi-finals'},
+    {id:'final',     label:'🏆 Final'},
+  ];
+
+  const sel = document.createElement('div');
+  sel.className = 'bracket-round-selector';
+  rounds.forEach(r => {
+    const chip = document.createElement('div');
+    chip.className = 'rchip' + (r.id === view ? ' active' : '');
+    chip.textContent = r.label;
+    chip.addEventListener('click', () => renderBracket(r.id));
+    sel.appendChild(chip);
+  });
+  el.appendChild(sel);
+
+  if (view === 'qualifier') {
+    renderQualifiers(el);
+    return;
+  }
+
+  // Notice: group stage ongoing?
+  const groupComplete = SCHEDULE.every(m => {
+    const rec = engine.rec(m);
+    return rec && rec.actual !== null;
+  });
+
+  if (!groupComplete && !resultsLoaded) {
+    const notice = document.createElement('div');
+    notice.className = 'bracket-notice';
+    notice.innerHTML = '<strong>⚠️ Group stage in progress</strong>' +
+      'Teams shown are projected from current standings. Slots marked TBD resolve ' +
+      'after all 72 group matches complete (June 27). Predictions use current ENS scores. ' +
+      'Fetch official results to update.';
+    el.appendChild(notice);
+  }
+
+  // Filter matches by round
+  const allSlots = bracketData ? Object.values(bracketData) : [];
+  let slots;
+  if (view === 'R32') slots = BracketResolver.R32_SLOTS.map(s => bracketData[s.id]);
+  else if (view === 'R16') slots = BracketResolver.R16_FEEDS.map(s => bracketData[s.id]);
+  else if (view === 'QF')  slots = BracketResolver.QF_FEEDS.map(s => bracketData[s.id]);
+  else if (view === 'SF')  slots = BracketResolver.SF_FEEDS.map(s => bracketData[s.id]);
+  else if (view === 'final') slots = BracketResolver.FINAL_FEEDS.map(s => bracketData[s.id]);
+  else slots = [];
+
+  if (!slots || !slots.length) {
+    el.innerHTML += '<div class="empty">No data available for this round yet.</div>';
+    return;
+  }
+
+  for (const slot of slots) {
+    if (!slot) continue;
+    el.appendChild(buildMatchCard(slot));
+  }
+}
+
+function buildMatchCard(slot) {
+  const div = document.createElement('div');
+  div.className = 'bracket-match';
+
+  const hTeam = slot.homeTeam;
+  const aTeam = slot.awayTeam;
+  const pred  = slot.prediction;
+
+  // Header
+  const dt = slot.date ? new Date(slot.date + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+  div.innerHTML = `
+    <div class="bm-header">
+      <span class="bm-slot">${esc(slot.id)} · ${esc(slot.round||'')}</span>
+      <span class="bm-date">${dt} · ${esc(slot.venue||'')}</span>
+    </div>
+    <div class="bm-teams">
+      ${teamRow(hTeam, slot.homeDesc || slot.homeFrom, slot.winner, 'home')}
+      <div class="bm-vs">vs</div>
+      ${teamRow(aTeam, slot.awayDesc || slot.awayFrom, slot.winner, 'away')}
+    </div>
+    ${pred && hTeam && aTeam ? predBlock(pred, hTeam, aTeam) : noPredBlock(hTeam, aTeam)}
+  `;
+  return div;
+}
+
+function teamRow(team, desc, winner, side) {
+  if (!team) {
+    return `<div class="bm-team-row tbd">
+      <span class="bm-flag">🏳️</span>
+      <span class="bm-name tbd-name">${esc(desc||'TBD')}</span>
+    </div>`;
+  }
+  const isWinner = winner === team;
+  return `<div class="bm-team-row${isWinner ? ' winner' : ''}">
+    <span class="bm-flag">${flag(team)}</span>
+    <span class="bm-name">${esc(team)}</span>
+    ${isWinner ? '<span style="font-size:0.6rem;color:var(--success);font-weight:700">✓ W</span>' : ''}
+  </div>`;
+}
+
+function predBlock(pred, h, a) {
+  const algos = [
+    {k:'pbe', color:'var(--pbe)', label:'PBE'},
+    {k:'elo', color:'var(--elo)', label:'ELO'},
+    {k:'poi', color:'var(--poi)', label:'POI'},
+    {k:'mkt', color:'var(--mkt)', label:'MKT'},
+    {k:'c5s', color:'var(--c5s)', label:'C5S'},
+    {k:'ens', color:'var(--ens)', label:'ENS'},
+  ].filter(a=>activeAlgos.has(a.k));
+  let rows = '';
+  for (const algo of algos) {
+    const p = pred[algo.k];
+    if (!p) continue;
+    const hw = (p.homeWin*100).toFixed(0);
+    const dw = (p.draw*100).toFixed(0);
+    const aw = (p.awayWin*100).toFixed(0);
+    const fav = p.homeWin > p.awayWin ? esc(h) : esc(a);
+    rows += `<div class="bm-pred-row">
+      <span class="bm-algo-tag" style="color:${algo.color}">${algo.label}</span>
+      <div class="bm-prob-bar">
+        <div class="bm-ph" style="width:${hw}%;background:${algo.color}"></div>
+        <div class="bm-pd" style="width:${dw}%"></div>
+        <div class="bm-pa" style="width:${aw}%"></div>
+      </div>
+      <div class="bm-probs">${hw}% · ${dw}% · ${aw}%</div>
+      ${algo.k==='ens' ? `<span class="bm-fav-chip">★ ${fav}</span>` : ''}
+    </div>`;
+  }
+  const title = algos.length===1
+    ? `🔮 ${algos[0].label} Prediction (H% · D% · A%)`
+    : `🔮 Predictions (H% · D% · A%)`;
+  return `<div class="bm-preds">
+    <div class="bm-preds-title">${title}</div>
+    ${rows}
+  </div>`;
+}
+
+function noPredBlock(h, a) {
+  if (!h || !a) {
+    return `<div class="bm-preds"><div style="font-size:0.65rem;color:var(--muted);padding:4px 0">
+      Predictions available once both teams are confirmed.</div></div>`;
+  }
+  return '';
+}
+
+function renderQualifiers(container) {
+  const qualifiers = BracketResolver.extractQualifiers(engine.teamGoals, SCHEDULE);
+  const {winners, runners, advancing3, thirds} = qualifiers;
+  const groups = 'ABCDEFGHIJKL'.split('');
+
+  // notice
+  const groupsDone = SCHEDULE.filter(m => {
+    const r = engine.rec(m); return r && r.actual !== null;
+  }).length;
+  const totalMatches = SCHEDULE.length;
+  const notice = document.createElement('div');
+  notice.className = 'bracket-notice';
+  notice.innerHTML = `<strong>Group stage: ${groupsDone}/${totalMatches} matches with results</strong>` +
+    `${groupsDone < totalMatches
+      ? ' — Projected from current standings. Green = confirmed mathematical qualification. Yellow = projected leader.'
+      : ' — Group stage complete. All 32 qualifiers confirmed.'}`;
+  container.appendChild(notice);
+
+  // Winners & runners-up
+  const qualGrid = document.createElement('div');
+  qualGrid.className = 'qual-section';
+  qualGrid.innerHTML = '<div class="qual-section-title">🥇 Group Winners &amp; Runners-up → R32</div>';
+  const grid = document.createElement('div');
+  grid.className = 'qual-grid';
+
+  for (const g of groups) {
+    const w = winners[g], r = runners[g];
+    const wCard = makeQualCard('1'+g, w, 'Winner');
+    const rCard = makeQualCard('2'+g, r, 'Runner-up');
+    grid.appendChild(wCard);
+    grid.appendChild(rCard);
+  }
+  qualGrid.appendChild(grid);
+  container.appendChild(qualGrid);
+
+  // Best 3rd place
+  const thirdSection = document.createElement('div');
+  thirdSection.className = 'qual-section';
+  thirdSection.innerHTML = '<div class="qual-section-title">🥉 Best Third-Place Teams (top 8 of 12 advance)</div>';
+  const thirdGrid = document.createElement('div');
+  thirdGrid.className = 'qual-grid';
+
+  thirds.forEach((t, i) => {
+    const advancing = i < 8;
+    const card = document.createElement('div');
+    card.className = 'qual-card' + (advancing ? ' confirmed' : ' eliminated');
+    const ens = (engine.ensScore(t.t)*100).toFixed(0);
+    card.innerHTML = `
+      <div class="status-dot ${advancing ? 'dot-confirmed' : 'dot-tbd'}"></div>
+      <div class="qual-slot">${advancing ? '#'+(i+1) : 'OUT'}</div>
+      <div class="qual-team">
+        <div class="qual-tname">${flag(t.t)} ${esc(t.t)}</div>
+        <div class="qual-tpts">Grp ${t.grp} · ${t.pts}pts · GD${t.gd>0?'+':''}${t.gd}</div>
+      </div>
+      <div class="qual-ens">${ens}</div>`;
+    thirdGrid.appendChild(card);
+  });
+  thirdSection.appendChild(thirdGrid);
+  container.appendChild(thirdSection);
+}
+
+function makeQualCard(slot, teamData, role) {
+  const card = document.createElement('div');
+  const hasData = teamData && teamData.mp > 0;
+  card.className = 'qual-card' + (hasData ? ' projected' : '');
+  const t = teamData ? teamData.t : null;
+  const ens = t ? (engine.ensScore(t)*100).toFixed(0) : '—';
+  card.innerHTML = `
+    <div class="status-dot ${hasData ? 'dot-projected' : 'dot-tbd'}"></div>
+    <div class="qual-slot">${esc(slot)}</div>
+    <div class="qual-team">
+      <div class="qual-tname">${t ? flag(t)+' '+esc(t) : '<span style="color:var(--muted);font-style:italic;font-size:0.7rem">TBD</span>'}</div>
+      <div class="qual-tpts">${role}${teamData ? ' · '+teamData.pts+'pts' : ''}</div>
+    </div>
+    <div class="qual-ens">${ens}</div>`;
+  return card;
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+}else{init()}
+</script>
+</body>
+</html>
